@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7EBEE0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calendar">
+<title>Airbnb Calendar</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#ffffff; --bg-subtle:#f5f7f9; --accent-subtle:#e6f2fa; --row-even:#ffffff; --row-odd:#f0f7fb;
+  --b-default:#dde2e7; --b-subtle:#eceff2; --b-strong:#b9c1c9;
+  --t1:#1b2229; --t2:#4b5763; --t3:#7d8893; --accent:#1f78b4;
+  --day-w:46px; --row-h:22px; --name-w:138px; --head-h:36px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+#app{height:100dvh;min-height:100dvh;width:100%;padding:4px;padding-top:max(4px,env(safe-area-inset-top));padding-bottom:max(4px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:2px;overflow:hidden}
+#meta{font-size:11px;line-height:1.2;color:var(--t3);padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#shell{display:flex;flex:0 1 auto;min-height:120px;border:1px solid var(--b-default);border-radius:8px;overflow-x:hidden;overflow-y:auto;background:var(--bg);user-select:none;-webkit-user-select:none;align-items:flex-start}
+#names{width:var(--name-w);flex-shrink:0;border-right:1px solid var(--b-default);background:var(--bg);z-index:2}
+.nhead{height:var(--head-h);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
+.nrow{height:var(--row-h);display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid var(--b-subtle);background:var(--row-even)}
+.nrow.odd{background:var(--row-odd)}
+.nrow span{font-size:13px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.divider{height:0;border-top:1px dashed var(--b-strong)}
+#scroller{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;cursor:grab;touch-action:pan-x pan-y;scrollbar-width:thin}
+#scroller.dragging{cursor:grabbing}
+#grid{position:relative}
+.months{height:14px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
+.month{flex-shrink:0;padding-left:0;font-size:11px;font-weight:600;color:var(--t2);display:flex;align-items:center;border-right:1px solid var(--b-subtle);white-space:nowrap}
+.month .ml{position:sticky;left:6px}
+.days{height:calc(var(--head-h) - 14px);display:flex;border-bottom:1px solid var(--b-default)}
+.day{width:var(--day-w);flex-shrink:0;border-right:1px solid var(--b-subtle);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.day .wd{font-size:10px;color:var(--t3);line-height:1.1}
+.day .dn{font-size:12px;font-weight:500;color:var(--t1);line-height:1.2}
+.day.we .dn{color:var(--t2)}
+.day.today{background:var(--accent-subtle)}
+.day.today .wd,.day.today .dn{color:var(--accent)}
+.day.today .dn{font-weight:600}
+#body{position:relative}
+.cols{position:absolute;inset:0;display:flex;pointer-events:none;z-index:1}
+.col{width:var(--day-w);flex-shrink:0;height:100%;border-right:1px solid var(--b-subtle)}
+.col.we{background:transparent}
+.col.today{background:transparent}
+/* Body day washes were opaque and hid row stripes in today (and weekends).
+   Header .day.today keeps accent; top triangles mark today/tomorrow. */
+.row{position:absolute;left:0;height:var(--row-h);border-bottom:1px solid var(--b-subtle);z-index:2}
+.row.div{border-top:1px dashed var(--b-strong)}
+.stripes{position:absolute;inset:0;pointer-events:none;z-index:0}
+.stripe{position:absolute;left:0;height:var(--row-h);background:var(--row-even)}
+.stripe.odd{background:var(--row-odd)}
+.bar{position:absolute;top:2px;height:calc(var(--row-h) - 4px);border-radius:999px;color:#1E3A4C;display:flex;align-items:center;gap:3px;padding:0 6px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.bar .n{font-size:15px;font-weight:700;line-height:1;letter-spacing:-.02em;flex-shrink:0}
+.bar .heads{display:inline-flex;gap:0;flex-shrink:0;align-items:center;margin-left:1px}
+.bar .heads svg{flex-shrink:0;display:block}
+.bar .g{font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:8px;flex-shrink:1;min-width:0}
+.dmark{position:absolute;top:0;height:9px;width:var(--day-w);pointer-events:none;z-index:4;clip-path:polygon(0 0,100% 0,50% 100%)}
+.dmark.t{background:#000}
+.dmark.m{background:rgba(0,0,0,.45)}
+/* Today turnover zones + live now line (Europe/Prague; checkout 10 / check-in 15). */
+.tzones{position:absolute;top:0;height:100%;display:flex;pointer-events:none;z-index:1}
+.tzone-pre{height:100%;background:rgba(255,56,92,.05)}
+.tzone-clean{height:100%;background:rgba(180,160,40,.10)}
+.tzone-in{height:100%;background:rgba(31,120,180,.07)}
+.nowline{position:absolute;top:0;width:2px;height:100%;background:#FF385C;box-shadow:0 0 0 1px rgba(255,255,255,.55);pointer-events:none;z-index:6}
+.nowline.head{top:14px;height:calc(var(--head-h) - 14px);box-shadow:none;z-index:5}
+
+#uklidy{flex-shrink:0;display:flex;gap:4px;padding-top:3px;border-top:1px solid var(--b-subtle);max-height:34dvh;min-height:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+.uk-col{flex:0 0 118px;width:118px;min-width:118px;display:flex;flex-direction:column;gap:1px;overflow:hidden;box-sizing:border-box;position:relative}
+.uk-col.muted{opacity:.92}
+.uk-mark{width:100%;height:8px;flex-shrink:0;pointer-events:none;clip-path:polygon(0 0,100% 0,50% 100%)}
+.uk-mark.t{background:#000}
+.uk-mark.m{background:rgba(0,0,0,.45)}
+.uk-col.muted .uk-h,.uk-col.muted .uk-sub,.uk-col.muted .uk-row .nm,.uk-col.muted .uk-empty{color:var(--t3)}
+.uk-h{font-size:11px;font-weight:600;color:var(--t2);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uk-list{overflow-y:auto;min-height:0;flex:1}
+.uk-sub{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin-top:1px}
+.uk-rule{border-top:1px solid var(--b-default);margin:3px 0 2px}
+.uk-row{display:flex;align-items:center;gap:3px;padding:0;min-width:0;line-height:1.25}
+.uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.uk-empty{font-size:11px;color:var(--t3)}
+#tip{position:fixed;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));background:#1E3A4C;color:#fff;font-size:13px;padding:8px 10px;border-radius:8px;display:none;z-index:10}
+
+@keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
+#meta .online{color:#1B7A3D;font-weight:600}
+#meta .offline{color:#C62828;font-weight:700;animation:offlineFlash 1.1s ease-in-out infinite}
+
+.nrow.turn span{font-weight:600}
+.uk-row.turn span{font-weight:600}
+.uk-col .nowline{z-index:6}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="meta"></div>
+  <div id="shell">
+    <div id="names"></div>
+    <div id="scroller"><div id="grid"></div></div>
+  </div>
+  <div id="uklidy"></div>
+</div>
+<div id="tip"></div>
+<script src="data.js"></script>
+<script>
+(function(){
+const DAY_W=46, ROW_H=22, HEAD_H=36;
+const CHECKOUT_H=10, CHECKIN_H=15; // Europe/Prague turnover clock
+const WEEKDAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const STAY_BAR="#A9B4C0"; // Airbnb multi-calendar soft slate (single solid)
+const INK="#1E3A4C";
+const B={roof:"#7EBEE0",cabin:"#9FD0EA",hull:"#6BB0D4",win:"#E8F6FC",water:"#5AA4C8"};
+const H={roof:"#1E4A7A",body:"#2E5A8C",win:"#D6E4F2"};
+const LOD=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" style="flex-shrink:0"><path d="M8 10 L24 3 L40 10 Z" fill="${B.roof}"/><rect x="10" y="10" width="28" height="10" fill="${B.cabin}"/><rect x="14" y="12" width="5" height="4" fill="${B.win}"/><rect x="21.5" y="12" width="5" height="4" fill="${B.win}"/><rect x="29" y="12" width="5" height="4" fill="${B.win}"/><path d="M2 20 H46 L42 26 H6 Z" fill="${B.hull}"/><path d="M0 28.5 q3 -2 6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0" stroke="${B.water}" stroke-width="1.2" fill="none"/></svg>`;
+const DUM=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" style="flex-shrink:0"><path d="M8 14 L24 3 L40 14 Z" fill="${H.roof}"/><rect x="12" y="14" width="24" height="14" fill="${H.body}"/><rect x="15" y="17" width="5" height="4" fill="${H.win}"/><rect x="28" y="17" width="5" height="4" fill="${H.win}"/><rect x="21.5" y="20" width="5" height="8" fill="${H.win}"/></svg>`;
+const HEAD=`<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="3.1" fill="${INK}"/><path d="M2.2 14.2c.6-3.2 2.8-4.8 5.8-4.8s5.2 1.6 5.8 4.8" fill="${INK}"/></svg>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const idx=(d,o)=>Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(o.getFullYear(),o.getMonth(),o.getDate()))/864e5);
+function pragueParts(d=new Date()){
+  const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Prague",year:"numeric",month:"2-digit",day:"2-digit",hour:"numeric",minute:"numeric",second:"numeric",hourCycle:"h23"}).formatToParts(d);
+  const get=t=>parts.find(p=>p.type===t)?.value||"0";
+  return {ymd:`${get("year")}-${get("month")}-${get("day")}`,hour:+get("hour"),minute:+get("minute"),second:+get("second")};
+}
+function pragueDayFraction(d=new Date()){
+  const {hour,minute,second}=pragueParts(d);
+  return Math.min(0.999,Math.max(0,(hour+minute/60+second/3600)/24));
+}
+function zoneLabel(frac){const h=frac*24;return h<CHECKOUT_H?"pre-checkout":h<CHECKIN_H?"cleaning":"check-in";}
+function todayYmdFromIdx(origin,i){const d=addDays(origin,i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+
+const D=window.DATA;
+const origin=parse(D.a), end=parse(D.b);
+// Highlight the device's real "today" if it falls in range, else the build day.
+const now=new Date(); let todayIdx=idx(now,origin);
+const dayCount=idx(end,origin)+1;
+if(todayIdx<0||todayIdx>=dayCount) todayIdx=idx(parse(D.t),origin);
+const L=D.L; const hb=L.filter(x=>x[1]===1).length;
+
+(function(){
+  const el=document.getElementById("meta");
+  const online=!!D.o;
+  const src=D.src||"";
+  const status=online
+    ? `<span class="online">ONLINE${src==="sync"?" · sync":""}</span>`
+    : `<span class="offline">OFFLINE</span>`;
+  el.innerHTML=`Aktualizace ${esc(D.u)} · ${status}`;
+  el.title=online
+    ? (src==="airbnb"
+        ? `Aktualizace ${D.u} · ONLINE (live Airbnb host calendar)`
+        : `Aktualizace ${D.u} · ONLINE (email/export sync, not live Airbnb API)`)
+    : `Aktualizace ${D.u} · OFFLINE — no Airbnb host session`;
+})();
+
+// same-day turnaround listings (checkout day == checkin day within window)
+const turnListings=(()=>{
+  const outs={},inns={};
+  for(const row of D.R){
+    const listing=row[1],start=row[3],end=row[4];
+    if(end>=D.a&&end<=D.b){(outs[listing]||(outs[listing]=new Set())).add(end);}
+    if(start>=D.a&&start<=D.b){(inns[listing]||(inns[listing]=new Set())).add(start);}
+  }
+  const set=new Set();
+  for(const name of Object.keys(outs)){
+    const i=inns[name]; if(!i) continue;
+    for(const day of outs[name]){ if(i.has(day)){ set.add(name); break; } }
+  }
+  return set;
+})();
+
+// names
+let h=`<div class="nhead">Listing</div>`;
+L.forEach(([name,kind],i)=>{
+  if(i===hb) h+=`<div class="divider"></div>`;
+  const isTurn=turnListings.has(name);
+  const tip=isTurn?`${esc(name)} · same-day turnaround`:`${esc(name)} · ${kind===1?"houseboat":"house"}`;
+  h+=`<div class="nrow ${kind===1?"boat":"house"}${i%2?" odd":""}${isTurn?" turn":""}" title="${tip}">${kind===1?LOD:DUM}<span>${esc(name)}</span></div>`;
+});
+document.getElementById("names").innerHTML=h;
+
+// grid
+const days=[];for(let i=0;i<dayCount;i++){const d=addDays(origin,i),wd=d.getDay();days.push({d,wd,we:wd===0||wd===6,today:i===todayIdx})}
+const gridW=dayCount*DAY_W;
+let g=`<div class="months">`;
+for(let i=0;i<days.length;){const d=days[i].d;let j=i+1;while(j<days.length&&days[j].d.getMonth()===d.getMonth())j++;g+=`<div class="month" style="width:${(j-i)*DAY_W}px"><span class="ml">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span></div>`;i=j}
+g+=`</div><div class="days">`;
+days.forEach(x=>{g+=`<div class="day${x.we?" we":""}${x.today?" today":""}"><span class="wd">${WEEKDAYS[x.wd]}</span><span class="dn">${x.d.getDate()}</span></div>`});
+g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
+L.forEach(([n],ri)=>{g+=`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:${gridW}px"></div>`});
+g+=`</div><div class="cols">`;
+days.forEach(x=>{g+=`<div class="col${x.today?" today":x.we?" we":""}"></div>`});
+g+=`</div>`;
+const preW=(CHECKOUT_H/24)*DAY_W, cleanW=((CHECKIN_H-CHECKOUT_H)/24)*DAY_W, inW=((24-CHECKIN_H)/24)*DAY_W;
+g+=`<div class="tzones" style="left:${todayIdx*DAY_W}px;width:${DAY_W}px"><div class="tzone-pre" style="width:${preW}px" title="Pre-checkout (before 10:00)"></div><div class="tzone-clean" style="width:${cleanW}px" title="Cleaning gap (10:00–15:00)"></div><div class="tzone-in" style="width:${inW}px" title="Check-in (from 15:00)"></div></div>`;
+g+=`<div class="nowline" id="nowBody" style="display:none"></div>`;
+const by={};L.forEach(([n])=>by[n]=[]);
+D.R.forEach(r=>{(by[r[1]]=by[r[1]]||[]).push(r)});
+L.forEach(([name],ri)=>{
+  const color=STAY_BAR;
+  g+=`<div class="row${ri===hb?" div":""}" style="top:${ri*ROW_H}px;width:${gridW}px">`;
+  (by[name]||[]).forEach(([code,,guest,s,e,nights,gc])=>{
+    const left=(idx(parse(s),origin)+0.5)*DAY_W;
+    const w=Math.max(nights*DAY_W-4,DAY_W*.55);
+    const gl=gc<0?"?":String(gc); const n=gc<0?0:Math.min(gc,10);
+    const t=`${guest} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code}`;
+    g+=`<div class="bar" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px;background:${color}"><span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span><span class="g">${esc(guest)}</span></div>`;
+  });
+  g+=`</div>`;
+});
+g+=`</div>`;
+g+=`<div class="dmark t" style="left:${todayIdx*DAY_W}px"></div><div class="dmark m" style="left:${(todayIdx+1)*DAY_W}px"></div>`;
+g+=`<div class="nowline head" id="nowHead" style="display:none"></div>`;
+const grid=document.getElementById("grid"); grid.style.width=gridW+"px"; grid.innerHTML=g;
+
+// Live "now" line: Prague clock within today's column (checkout 10 / cleaning / check-in 15).
+(function(){
+  const todayIso=todayYmdFromIdx(origin,todayIdx);
+  const place=()=>{
+    const p=pragueParts();
+    const frac=pragueDayFraction();
+    const on=p.ymd===todayIso;
+    const x=todayIdx*DAY_W+frac*DAY_W-1;
+    const label=`Now · ${zoneLabel(frac)} · ${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")} Prague`;
+    ["nowBody","nowHead"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      if(!on){el.style.display="none";return;}
+      el.style.display="block";
+      el.style.left=x+"px";
+      el.title=label;
+    });
+    const uk=document.getElementById("nowUk");
+    if(uk){
+      if(!on){uk.style.display="none";}
+      else{uk.style.display="block";uk.style.left=(frac*118-1)+"px";uk.title=label;}
+    }
+  };
+  place();
+  setInterval(place,30000);
+})();
+
+// initial scroll near today
+const sc=document.getElementById("scroller");
+sc.scrollLeft=Math.max(0,(todayIdx-2)*DAY_W);
+
+// mouse drag-to-pan (touch uses native momentum scrolling)
+let drag=null;
+sc.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse")return;drag={x:e.clientX,l:sc.scrollLeft,m:false};sc.classList.add("dragging");try{sc.setPointerCapture(e.pointerId)}catch(_){}});
+sc.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>3)drag.m=true;sc.scrollLeft=drag.l-dx});
+const up=e=>{if(!drag)return;const m=drag.m;drag=null;sc.classList.remove("dragging");try{sc.releasePointerCapture(e.pointerId)}catch(_){};if(m)sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0)};
+sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up);
+
+// tap a bar → details toast (phones have no hover titles)
+const tip=document.getElementById("tip");let tt;
+grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".bar");if(!b){tip.style.display="none";return}tip.textContent=b.dataset.t;tip.style.display="block";clearTimeout(tt);tt=setTimeout(()=>tip.style.display="none",4000)});
+
+
+// Uklidy: scrollable past ← dnes/zítra/pozítří → future; gray outside focus
+(function(){
+  const CZ_WD=["ne","po","út","st","čt","pá","so"];
+  const UK_COL_W=118;
+  const today=parse(D.t);
+  const start=parse(D.a);
+  const end=parse(D.b);
+  const total=idx(end,start)+1;
+  const todayOff=Math.max(0,idx(today,start));
+  const kind={}; L.forEach(([n,k])=>kind[n]=k);
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":""))}">${it.kind===1?LOD:DUM}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
+  let html="";
+  for(let i=0;i<total;i++){
+    const day=addDays(start,i);
+    const iso=`${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,"0")}-${String(day.getDate()).padStart(2,"0")}`;
+    const offToday=idx(day,today);
+    const focus=offToday>=0&&offToday<=2;
+    const label=`${CZ_WD[day.getDay()]} ${day.getDate()}.${day.getMonth()+1}`;
+    const outs=[], inns=[];
+    D.R.forEach(r=>{
+      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2]};
+      if(r[4]===iso) outs.push(item);
+      if(r[3]===iso) inns.push(item);
+    });
+    outs.sort((a,b)=>a.listing.localeCompare(b.listing));
+    inns.sort((a,b)=>a.listing.localeCompare(b.listing));
+    const turnSet=new Set();
+    outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
+    const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
+    const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
+    html+=`<div class="uk-col${focus?"":" muted"}">${mark}${nowUk}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
+    html+=`<div class="uk-sub">Odjezdy</div>`;
+    html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
+    html+=`<div class="uk-rule"></div><div class="uk-sub">Příjezdy</div>`;
+    html+= inns.length? inns.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
+    html+=`</div></div>`;
+  }
+  const el=document.getElementById("uklidy");
+  el.innerHTML=html;
+  // dnes leftmost of the three focus days
+  el.scrollLeft=todayOff*(UK_COL_W+4);
+  // place() may have run before #nowUk existed — set initial position now
+  (function(){
+    const uk=document.getElementById("nowUk");
+    if(!uk) return;
+    const p=pragueParts();
+    const frac=pragueDayFraction();
+    if(p.ymd!==D.t){uk.style.display="none";return;}
+    uk.style.display="block";
+    uk.style.left=(frac*UK_COL_W-1)+"px";
+    uk.title=`Now · ${zoneLabel(frac)} · ${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")} Prague`;
+  })();
+})();
+
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+})();
+</script>
+</body>
+</html>
