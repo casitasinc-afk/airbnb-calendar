@@ -89,6 +89,11 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 
 @keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
 #meta .online{color:#1B7A3D;font-weight:600}
+#meta .lg{margin-left:6px;display:inline-flex;gap:3px;vertical-align:middle}
+#meta .lg i{font-style:normal;font-size:9px;line-height:12px;padding:0 4px;border-radius:999px;color:#1E3A4C}
+#meta .lg i.d{border:1px dashed rgba(30,58,76,.6);line-height:10px}
+.bar.judged{border:1.5px dashed rgba(30,58,76,.55)}
+.bar.judged.cp{border-color:#B3261E}
 #meta .offline{color:#C62828;font-weight:700;animation:offlineFlash 1.1s ease-in-out infinite}
 
 .nrow.turn span{font-weight:600}
@@ -113,7 +118,10 @@ const DAY_W=46, ROW_H=22, HEAD_H=36;
 const CHECKOUT_H=10, CHECKIN_H=15; // Europe/Prague turnover clock
 const WEEKDAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const STAY_BAR="#A9B4C0"; // Airbnb multi-calendar soft slate (single solid)
+const STAY_BAR="#A9B4C0"; // neutral slate = no rating / no messages
+// Guest-quality colors (guest_ratings.json → D.Q[code]=[tier,reviews,note]); r* rating tiers, c* judged from messages (dashed)
+const TIER_BG={r5:"#9ED9A8",r49:"#C8E6B0",r48:"#E4EC9E",r47:"#F6DA8A",r46:"#F6C0B3",r45:"#EFA294",r44:"#E3857A",cf:"#C8E6B0",cu:"#F6DA8A",cp:"#F2A99C",n:STAY_BAR};
+const TIER_LABEL={r5:"5.0★ (always green)",r49:"4.9★",r48:"4.8★",r47:"4.7★",r46:"4.6★",r45:"4.4–4.5★",r44:"<4.4★",cf:"no rating · messages look fine",cu:"no rating · messages unsure",cp:"no rating · messages look problematic",n:"no rating / no messages"};
 const INK="#1E3A4C";
 const B={roof:"#7EBEE0",cabin:"#9FD0EA",hull:"#6BB0D4",win:"#E8F6FC",water:"#5AA4C8"};
 const H={roof:"#1E4A7A",body:"#2E5A8C",win:"#D6E4F2"};
@@ -151,7 +159,8 @@ const L=D.L; const hb=L.filter(x=>x[1]===1).length;
   const status=online
     ? `<span class="online">ONLINE${src==="sync"?" · sync":""}</span>`
     : `<span class="offline">OFFLINE</span>`;
-  el.innerHTML=`Aktualizace ${esc(D.u)} · ${status}`;
+  const lg=`<span class="lg" title="Stay colors: Airbnb guest rating (5★ green → ≤4.6 red). Dashed = no rating, judged from guest messages. Gray = no data."><i style="background:${TIER_BG.r5}">5★</i><i style="background:${TIER_BG.r49}">4.9</i><i style="background:${TIER_BG.r48}">4.8</i><i style="background:${TIER_BG.r47}">4.7</i><i style="background:${TIER_BG.r46}">≤4.6</i><i class="d">zprávy</i><i style="background:${STAY_BAR}">?</i></span>`;
+  el.innerHTML=`Aktualizace ${esc(D.u)} · ${status}${lg}`;
   el.title=online
     ? (src==="airbnb"
         ? `Aktualizace ${D.u} · ONLINE (live Airbnb host calendar)`
@@ -203,14 +212,14 @@ g+=`<div class="nowline" id="nowBody" style="display:none"></div>`;
 const by={};L.forEach(([n])=>by[n]=[]);
 D.R.forEach(r=>{(by[r[1]]=by[r[1]]||[]).push(r)});
 L.forEach(([name],ri)=>{
-  const color=STAY_BAR;
   g+=`<div class="row${ri===hb?" div":""}" style="top:${ri*ROW_H}px;width:${gridW}px">`;
   (by[name]||[]).forEach(([code,,guest,s,e,nights,gc])=>{
     const left=(idx(parse(s),origin)+0.5)*DAY_W;
     const w=Math.max(nights*DAY_W-4,DAY_W*.55);
     const gl=gc<0?"?":String(gc); const n=gc<0?0:Math.min(gc,10);
-    const t=`${guest} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code}`;
-    g+=`<div class="bar" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px;background:${color}"><span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span><span class="g">${esc(guest)}</span></div>`;
+    const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
+    const t=`${guest} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}`;
+    g+=`<div class="bar${tier[0]==="c"?" judged "+tier:""}" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px;background:${color}"><span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span><span class="g">${esc(guest)}</span></div>`;
   });
   g+=`</div>`;
 });
