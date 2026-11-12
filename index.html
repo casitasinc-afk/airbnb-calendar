@@ -99,7 +99,11 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .uk-row{display:flex;align-items:center;gap:3px;padding:0;min-width:0;line-height:1.25}
 .uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .uk-empty{font-size:11px;color:var(--t3)}
-#tip{position:fixed;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));background:#1E3A4C;color:#fff;font-size:13px;padding:8px 10px;border-radius:8px;display:none;z-index:10}
+#tip{position:fixed;display:none;z-index:10000;max-width:min(280px,calc(100vw - 16px));background:#1E3A4C;color:#fff;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:auto}
+#tip .tip-name{font-weight:700;font-size:13px}
+#tip .tip-listing{font-weight:600}
+#tip .tip-muted{opacity:.7;font-size:11px}
+#tip .tip-car{font-weight:700}
 
 @keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
 #meta .online{color:#1B7A3D;font-weight:600}
@@ -235,7 +239,7 @@ L.forEach(([name],ri)=>{
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
+    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
     let inner;
     if(gc>3){
       inner=`<span class="heads">${HEAD}</span><span class="n">${gl}</span>`;
@@ -292,9 +296,114 @@ sc.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x;
 const up=e=>{if(!drag)return;const m=drag.m;drag=null;sc.classList.remove("dragging");try{sc.releasePointerCapture(e.pointerId)}catch(_){};if(m)sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0)};
 sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up);
 
-// tap a bar → details toast (phones have no hover titles)
-const tip=document.getElementById("tip");let tt;
-grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".bar");if(!b){tip.style.display="none";return}tip.textContent=b.dataset.t;tip.style.display="block";clearTimeout(tt);tt=setTimeout(()=>tip.style.display="none",4000)});
+// Custom stay/uklidy tooltip: hover on desktop, tap/click on mobile.
+// Native title stays as a fallback; it is temporarily removed while the card is open.
+const tip=document.getElementById("tip");
+let tipPinned=false, tipAnchor=null;
+function fineHover(){try{return window.matchMedia("(hover: hover) and (pointer: fine)").matches}catch(_){return true}}
+function stayCard(code){
+  const row=D.R.find(r=>r[0]===code);
+  if(!row) return "";
+  const [c,listing,guest,s,e,nights,gc]=row;
+  const gl=gc<0?"?":String(gc);
+  const q=(D.Q&&D.Q[c])||["n",-1,""];
+  const plate=(D.P&&D.P[c])||"";
+  let h=`<div class="tip-name">${esc(guest)}</div>`;
+  h+=`<div class="tip-listing">${esc(listing)}</div>`;
+  h+=`<div>${esc(s)} → ${esc(e)} · ${nights} night${nights===1?"":"s"}</div>`;
+  h+=`<div>${esc(gl)} guest${gc===1?"":"s"}</div>`;
+  h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
+  if(q[2]) h+=`<div>${esc(q[2])}</div>`;
+  if(plate) h+=`<div class="tip-car">Car: ${esc(plate)}</div>`;
+  h+=`<div class="tip-muted">${esc(c)}</div>`;
+  return h;
+}
+function ukCard(el){
+  const listing=el.dataset.listing||"";
+  const guest=el.dataset.guest||"";
+  const guests=el.dataset.guests||"?";
+  const turn=el.dataset.turn==="1";
+  let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
+  h+=`<div class="tip-listing">${esc(guest)}</div>`;
+  if(turn) h+=`<div>same-day turnaround</div>`;
+  return h;
+}
+function hideTip(){
+  if(tipAnchor&&tipAnchor.dataset.titleSaved!=null){
+    tipAnchor.setAttribute("title", tipAnchor.dataset.titleSaved);
+    delete tipAnchor.dataset.titleSaved;
+  }
+  tip.style.display="none";
+  tip.innerHTML="";
+  tipPinned=false;
+  tipAnchor=null;
+}
+function showTip(anchor, html, pinned){
+  if(!anchor||!html) return;
+  if(tipAnchor&&tipAnchor!==anchor&&tipAnchor.dataset.titleSaved!=null){
+    tipAnchor.setAttribute("title", tipAnchor.dataset.titleSaved);
+    delete tipAnchor.dataset.titleSaved;
+  }
+  if(anchor.getAttribute("title")){
+    anchor.dataset.titleSaved=anchor.getAttribute("title");
+    anchor.removeAttribute("title");
+  }
+  tipAnchor=anchor;
+  tipPinned=!!pinned;
+  tip.innerHTML=html;
+  tip.style.display="block";
+  tip.style.left="-9999px";
+  tip.style.top="0px";
+  const r=anchor.getBoundingClientRect();
+  const tw=tip.offsetWidth, th=tip.offsetHeight;
+  const pad=8, vw=window.innerWidth, vh=window.innerHeight;
+  let left=r.left;
+  let top=r.bottom+6;
+  if(top+th>vh-pad) top=r.top-th-6;
+  if(left+tw>vw-pad) left=Math.max(pad, r.right-tw);
+  if(left<pad) left=pad;
+  if(top<pad) top=pad;
+  if(top+th>vh-pad) top=Math.max(pad, vh-pad-th);
+  tip.style.left=left+"px";
+  tip.style.top=top+"px";
+}
+function hookTip(root, selector, htmlOf){
+  root.addEventListener("mouseover",e=>{
+    if(!fineHover()) return;
+    const b=e.target.closest(selector);
+    if(!b||!root.contains(b)) return;
+    showTip(b, htmlOf(b), false);
+  });
+  root.addEventListener("mouseout",e=>{
+    if(!fineHover()||tipPinned) return;
+    const b=e.target.closest(selector);
+    if(!b||!root.contains(b)) return;
+    const to=e.relatedTarget;
+    if(to&&(b.contains(to)||tip.contains(to))) return;
+    hideTip();
+  });
+  root.addEventListener("click",e=>{
+    if(root===grid&&sc.dataset.justDragged) return;
+    const b=e.target.closest(selector);
+    if(!b||!root.contains(b)){
+      if(!e.target.closest("#tip")) hideTip();
+      return;
+    }
+    showTip(b, htmlOf(b), true);
+  });
+}
+hookTip(grid, ".bar", b=>b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||""));
+sc.addEventListener("scroll",()=>hideTip(),{passive:true});
+sc.addEventListener("pointermove",e=>{if(drag&&drag.m) hideTip()});
+
+document.getElementById("shell").addEventListener("scroll",()=>hideTip(),{passive:true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape") hideTip()});
+document.addEventListener("pointerdown",e=>{
+  if(tip.style.display==="none") return;
+  if(e.target.closest("#tip")) return;
+  if(e.target.closest(".bar")||e.target.closest(".uk-row")) return;
+  hideTip();
+});
 
 
 // Uklidy: scrollable past ← dnes/zítra/pozítří → future; gray outside focus
@@ -307,7 +416,7 @@ grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.tar
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":""))}">${it.kind===1?LOD:DUM}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":""))}">${it.kind===1?LOD:DUM}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -338,6 +447,8 @@ grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.tar
   el.innerHTML=html;
   // dnes leftmost of the three focus days
   el.scrollLeft=todayOff*(UK_COL_W+4);
+  hookTip(el, ".uk-row", ukCard);
+  el.addEventListener("scroll",()=>hideTip(),{passive:true});
   // place() may have run before #nowUk existed — set initial position now
   (function(){
     const uk=document.getElementById("nowUk");
@@ -366,7 +477,7 @@ grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.tar
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""];
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
+    const t=`${guest} · ${listing} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
     return {code,listing,guest,s,e,plate,hay:norm([guest,plate,t].join(" "))};
   });
   function openPanel(on){
