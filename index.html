@@ -102,6 +102,12 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .uk-rule{border-top:1px solid var(--b-default);margin:3px 0 2px}
 .uk-row{display:flex;align-items:center;gap:3px;padding:0;min-width:0;min-height:22px;line-height:1.25;cursor:pointer;pointer-events:auto}
 .uk-row > *{pointer-events:none}
+.uk-sec{border-radius:4px;padding:1px 3px 2px}
+.uk-sec.out{background:rgba(255,56,92,.08)}
+.uk-sec.in{background:rgba(40,160,80,.08)}
+.uk-row .lm{color:#D0021B;font-weight:800;font-size:13px;line-height:1;flex-shrink:0}
+.bar .lm{flex-shrink:0;width:12px;height:12px;border-radius:999px;background:#E11D48;color:#fff;font-size:10px;font-weight:800;line-height:12px;text-align:center}
+.tip-lm{color:#B3261E;font-weight:700}
 .uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .uk-empty{font-size:11px;color:var(--t3)}
 #tip{position:fixed;display:none;z-index:10000;max-width:min(280px,calc(100vw - 16px));background:#1E3A4C;color:#fff;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:auto}
@@ -169,6 +175,9 @@ function zoneLabel(frac){const h=frac*24;return h<CHECKOUT_H?"pre-checkout":h<CH
 function todayYmdFromIdx(origin,i){const d=addDays(origin,i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
 
 const D=window.DATA;
+// Last-minute arrivals (booked < 24 h before 15:00 check-in), from refresh.py.
+const LAST_MIN=new Set(D.M||[]);
+const LAST_MIN_TEXT="! Last-minute booking (< 24 h before check-in)";
 const origin=parse(D.a), end=parse(D.b);
 // Highlight the device's real "today" if it falls in range, else the build day.
 const now=new Date(); let todayIdx=idx(now,origin);
@@ -252,6 +261,7 @@ L.forEach(([name],ri)=>{
       const n=gc<0?0:gc;
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
+    if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="last-minute booking">!</span>`+inner;
     if(plate) inner+=CAR;
     inner+=`<span class="g">${esc(guest)}</span>`;
     g+=`<div class="bar${tier[0]==="c"?" judged "+tier:""}" id="bar-${esc(code)}" data-code="${esc(code)}" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px"><div class="bar-inner" style="background:${color}">${inner}</div></div>`;
@@ -328,6 +338,7 @@ function stayCard(code){
   h+=`<div>${esc(s)} → ${esc(e)} · ${nights} night${nights===1?"":"s"}</div>`;
   h+=`<div>${esc(gl)} guest${gc===1?"":"s"}</div>`;
   h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
+  if(LAST_MIN.has(c)) h+=`<div class="tip-lm">${esc(LAST_MIN_TEXT)}</div>`;
   if(q[2]) h+=`<div>${esc(q[2])}</div>`;
   if(plate) h+=`<div class="tip-car">Car: ${esc(plate)}</div>`;
   h+=`<div class="tip-muted">${esc(c)}</div>`;
@@ -341,6 +352,7 @@ function ukCard(el){
   let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
   if(turn) h+=`<div>same-day turnaround</div>`;
+  if(el.dataset.lm==="1") h+=`<div class="tip-lm">${esc(LAST_MIN_TEXT)}</div>`;
   return h;
 }
 function hideTip(){
@@ -433,7 +445,7 @@ document.addEventListener("pointerdown",e=>{
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":""))}">${it.kind===1?LOD:DUM}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -443,7 +455,7 @@ document.addEventListener("pointerdown",e=>{
     const label=`${CZ_WD[day.getDay()]} ${day.getDate()}.${day.getMonth()+1}`;
     const outs=[], inns=[];
     D.R.forEach(r=>{
-      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2]};
+      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0])};
       if(r[4]===iso) outs.push(item);
       if(r[3]===iso) inns.push(item);
     });
@@ -454,11 +466,11 @@ document.addEventListener("pointerdown",e=>{
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
     html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
-    html+=`<div class="uk-sub">Odjezdy</div>`;
+    html+=`<div class="uk-sec out"><div class="uk-sub">Odjezdy</div>`;
     html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
-    html+=`<div class="uk-rule"></div><div class="uk-sub">Příjezdy</div>`;
+    html+=`</div><div class="uk-rule"></div><div class="uk-sec in"><div class="uk-sub">Příjezdy</div>`;
     html+= inns.length? inns.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
-    html+=`</div></div>`;
+    html+=`</div></div></div>`;
   }
   const el=document.getElementById("uklidy");
   el.innerHTML=html;
