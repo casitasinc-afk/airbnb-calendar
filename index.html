@@ -113,7 +113,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 /* Parking button + slide-out panel (12 angled spots) */
 #park-btn{position:fixed;left:6px;bottom:max(4px,env(safe-area-inset-bottom));width:34px;height:34px;border-radius:999px;border:1px solid #D1D5DB;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;z-index:9000}
 #park-btn span{width:22px;height:22px;border-radius:4px;background:#1D4ED8;color:#fff;font-weight:800;font-size:16px;line-height:22px;text-align:center}
-#park-count{position:fixed;left:46px;bottom:calc(max(4px,env(safe-area-inset-bottom)) + 9px);font-size:11px;font-weight:600;color:#374151;z-index:9000;pointer-events:none}
+#park-count{position:fixed;left:46px;bottom:calc(max(4px,env(safe-area-inset-bottom)) + 6px);height:22px;line-height:22px;padding:0 10px;border-radius:999px;background:#F3F4F6;border:1px solid #D1D5DB;color:#111827;font-size:12px;font-weight:600;white-space:nowrap;z-index:9000;pointer-events:none}
 #park-panel{position:fixed;left:4px;bottom:calc(max(4px,env(safe-area-inset-bottom)) + 40px);width:min(420px,calc(100vw - 8px));box-sizing:border-box;background:#fff;color:#111827;border:1px solid #D1D5DB;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.22);padding:8px 10px 10px;z-index:9001;transform:translateX(calc(-100% - 12px));opacity:0;transition:transform 220ms ease-out,opacity 220ms ease-out;pointer-events:none}
 #park-panel.open{transform:translateX(0);opacity:1;pointer-events:auto}
 #park-panel .ph{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;font-weight:700;font-size:13px}
@@ -548,31 +548,35 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   const SPOTS=12, TAN=Math.tan(20*Math.PI/180);
   const btn=document.getElementById("park-btn"), panel=document.getElementById("park-panel"), cnt=document.getElementById("park-count");
   function now(){
-    const p=pragueParts(), today=p.ymd, cars=[]; let inHouse=0;
+    const p=pragueParts(), today=p.ymd, cars=[]; let inHouse=0, night=0, nightIn=0;
     D.R.forEach(r=>{const [code,listing,guest,s,e]=r;
+      if(s<=today&&e>today){nightIn++;if(D.P&&D.P[code])night++;}
       const arrived=s<today||(s===today&&p.hour>=CHECKIN_H), notLeft=e>today||(e===today&&p.hour<CHECKOUT_H);
       if(!arrived||!notLeft)return; inHouse++; const pl=D.P&&D.P[code]; if(pl)cars.push({code,plate:pl,listing,guest});});
     cars.sort((a,b)=>a.listing.localeCompare(b.listing));
-    return {cars,inHouse,noPlate:inHouse-cars.length};
+    return {cars,inHouse,noPlate:inHouse-cars.length,night,nightIn};
   }
   function svg(plates){
     const W=30,H=66,off=H*TAN,top=6,vbW=SPOTS*W+off+8;
     let h=`<svg viewBox="0 0 ${vbW} ${H+top*2}" width="100%" role="img" aria-label="${plates.length} of ${SPOTS} parking spots occupied" style="display:block"><rect x="0" y="0" width="${vbW}" height="${H+top*2}" rx="6" fill="#E5E7EB"/>`;
     for(let i=0;i<SPOTS;i++){
       const x0=4+i*W, pl=plates[i], cx=x0+W/2+off/2, cy=top+H/2;
-      h+=`<polygon points="${x0},${top} ${x0+W},${top} ${x0+W+off},${top+H} ${x0+off},${top+H}" fill="${pl?"#D1D5DB":"#F9FAFB"}" stroke="#6B7280" stroke-width="1"${pl?"":' stroke-dasharray="3 2"'}/>`;
-      if(pl) h+=`<g transform="translate(${cx} ${cy}) rotate(-20)"><rect x="-10" y="-26" width="20" height="52" rx="6" fill="#334155"/><rect x="-8" y="-19" width="16" height="8" rx="2" fill="#93C5FD"/><rect x="-8" y="14" width="16" height="6" rx="2" fill="#93C5FD"/><text transform="rotate(90)" x="0" y="3" text-anchor="middle" font-size="7.5" font-weight="700" fill="#FFFFFF" font-family="system-ui,sans-serif">${esc(pl)}</text></g>`;
+      h+=`<polygon points="${x0+off},${top} ${x0+W+off},${top} ${x0+W},${top+H} ${x0},${top+H}" fill="${pl?"#D1D5DB":"#F9FAFB"}" stroke="#6B7280" stroke-width="1"${pl?"":' stroke-dasharray="3 2"'}/>`;
+      if(pl) h+=`<g transform="translate(${cx} ${cy}) rotate(20)"><rect x="-10" y="-26" width="20" height="52" rx="6" fill="#334155"/><rect x="-8" y="-19" width="16" height="8" rx="2" fill="#93C5FD"/><rect x="-8" y="14" width="16" height="6" rx="2" fill="#93C5FD"/><text transform="rotate(90)" x="0" y="3" text-anchor="middle" font-size="7.5" font-weight="700" fill="#FFFFFF" font-family="system-ui,sans-serif">${esc(pl)}</text></g>`;
       else h+=`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="8" fill="#6B7280" font-family="system-ui,sans-serif">${i+1}</text>`;
     }
     return h+`</svg>`;
   }
   function render(){
     const info=now(), shown=info.cars.slice(0,SPOTS), over=info.cars.length-shown.length, pct=Math.round(shown.length/SPOTS*100);
-    cnt.textContent=`${shown.length}/${SPOTS}`;
+    const nightShown=Math.min(info.night,SPOTS), nightPct=Math.round(nightShown/SPOTS*100);
+    cnt.textContent=`Tonight ${nightPct}%`;
     const col=pct>=100?"#BE123C":pct>=75?"#B45309":"#1D4ED8";
-    panel.innerHTML=`<div class="ph"><span>Parking</span><span>${shown.length}/${SPOTS} · ${pct}% full</span></div><div class="pbar"><div style="width:${pct}%;background:${col}"></div></div>${svg(shown.map(c=>c.plate))}`+
+    panel.innerHTML=`<div class="ph"><span>Parking</span><span>Now ${shown.length}/${SPOTS} · ${pct}% full</span></div><div class="pbar"><div style="width:${pct}%;background:${col}"></div></div>${svg(shown.map(c=>c.plate))}`+
       `<div class="plist">${shown.length?shown.map(c=>esc(`${c.plate} · ${c.listing} (${c.guest})`)).join("  ·  "):"No plates for guests in-house now."}</div>`+
       `<div class="pnote">In-house now: ${info.inHouse} · without plate: ${info.noPlate}</div>`+
+      `<div class="ph" style="font-size:12px;margin:4px 0 0">Tonight ${nightShown}/${SPOTS} · ${nightPct}% full</div>`+
+      `<div class="pnote">Staying tonight: ${info.nightIn} · without plate: ${info.nightIn-info.night}${info.night>SPOTS?` · overflow ${info.night-SPOTS}`:""}</div>`+
       (over>0?`<div class="pover">Overflow: ${over} more car${over===1?"":"s"} than ${SPOTS} spots</div>`:"");
   }
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");if(on)render();}
