@@ -141,6 +141,8 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #tip .tip-name{font-weight:700;font-size:13px}
 #tip .tip-listing{font-weight:600;color:#374151}
 #tip .tip-muted{color:#4B5563;font-size:11px}
+#tip .tip-tr{font-weight:600;display:flex;align-items:center;gap:5px}
+.bar svg.tr{flex-shrink:0}
 #tip .tip-car{font-weight:700;display:flex;align-items:center;gap:5px}
 .uk-row .carf{flex-shrink:0}
 .pdays{height:14px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
@@ -195,6 +197,11 @@ const LOD=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" st
 const DUM=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" style="flex-shrink:0"><path d="M8 14 L24 3 L40 14 Z" fill="${H.roof}"/><rect x="12" y="14" width="24" height="14" fill="${H.body}"/><rect x="15" y="17" width="5" height="4" fill="${H.win}"/><rect x="28" y="17" width="5" height="4" fill="${H.win}"/><rect x="21.5" y="20" width="5" height="8" fill="${H.win}"/></svg>`;
 const HEAD=`<svg width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="3.1" fill="${INK}"/><path d="M2.2 14.2c.6-3.2 2.8-4.8 5.8-4.8s5.2 1.6 5.8 4.8" fill="${INK}"/></svg>`;
 const CARF=(c,sz)=>`<svg class="carf" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><path d="M5.5 10.5 7.2 6.4A2 2 0 0 1 9.05 5.2h5.9a2 2 0 0 1 1.85 1.2l1.7 4.1A2.5 2.5 0 0 1 20 12.8V17a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-1H7.2v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4.2a2.5 2.5 0 0 1 1.5-2.3Z" fill="${c}"/><path d="M7.6 10.2h8.8l-1.2-3a.8.8 0 0 0-.75-.5h-5.1a.8.8 0 0 0-.75.5Z" fill="#FFFFFF" opacity="0.9"/><circle cx="7.3" cy="13.2" r="1.1" fill="#FFFFFF"/><circle cx="16.7" cy="13.2" r="1.1" fill="#FFFFFF"/></svg>`;
+// Mode of transport (D.T from transport.json: code → [mode, note?]); a known plate (D.P) means car. No data → no icon.
+const TR_LABEL={plane:"Plane",train:"Train",bus:"Bus",car:"Car",taxi:"Taxi"};
+const TR_PATH={plane:"M8 1.2c.55 0 .9.6.9 1.3v3.6l5.6 3.3v1.5L8.9 9.2v3l1.7 1.3v1.2L8 14l-2.6.7v-1.2l1.7-1.3v-3L1.5 10.9V9.4l5.6-3.3V2.5c0-.7.35-1.3.9-1.3z",train:"M4.5 1.5h7a2 2 0 0 1 2 2v7a2 2 0 0 1-1.6 2l1.4 2h-1.6l-1.2-1.8H5.5l-1.2 1.8H2.7l1.4-2a2 2 0 0 1-1.6-2v-7a2 2 0 0 1 2-2zM4.3 3.6v3.6h7.4V3.6zM4.6 9.4v1.5h1.5V9.4zM9.9 9.4v1.5h1.5V9.4z",bus:"M3.5 1.5h9A1.5 1.5 0 0 1 14 3v9.5a1 1 0 0 1-1 1h-.5v1.2a.8.8 0 0 1-1.6 0v-1.2H5.1v1.2a.8.8 0 0 1-1.6 0v-1.2H3a1 1 0 0 1-1-1V3a1.5 1.5 0 0 1 1.5-1.5zM3.6 3.4v4.4h8.8V3.4zM4 10v1.4h1.6V10zM10.4 10v1.4H12V10z",taxi:"M6.2 1.4h3.6v1.7H6.2zM3.6 7l1.2-2.6A1.3 1.3 0 0 1 6 3.6h4a1.3 1.3 0 0 1 1.2.8L12.4 7a1.7 1.7 0 0 1 1.2 1.6v3.6a.8.8 0 0 1-.8.8h-1a.8.8 0 0 1-.8-.8v-.7H5v.7a.8.8 0 0 1-.8.8h-1a.8.8 0 0 1-.8-.8V8.6A1.7 1.7 0 0 1 3.6 7zM5.2 6.8h5.6l-.8-2a.5.5 0 0 0-.45-.3h-3.1a.5.5 0 0 0-.45.3zM4 8.6v1.2h1.6V8.6zM10.4 8.6v1.2H12V8.6z"};
+const TRI=(m,c,sz)=>`<svg class="tr" width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-label="${TR_LABEL[m]}" data-transport="${m}" style="flex-shrink:0;pointer-events:none"><path d="${TR_PATH[m]}" fill="${c}" fill-rule="evenodd"/></svg>`;
+function transportOf(code){const t=D.T&&D.T[code];if(t&&TR_LABEL[t[0]])return {m:t[0],note:t[1]||""};if(D.P&&D.P[code])return {m:"car",note:""};return null}
 const CAR=`<svg class="car" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
@@ -276,7 +283,8 @@ days.forEach(x=>{g+=`<div class="day${x.we?" we":""}${x.today?" today":""}"><spa
 g+=`</div><div class="pdays">`;
 const PARK_DAY=Array.from({length:dayCount},()=>({n:0,cars:[]}));
 D.R.forEach(([code,listing,,s,e])=>{const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pl=D.P&&D.P[code];for(let i=a;i<b;i++){PARK_DAY[i].n++;if(pl)PARK_DAY[i].cars.push({listing,plate:pl});}});
-PARK_DAY.forEach((pk,i)=>{const pct=Math.round(pk.n/12*100);g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" title="Parking ${pk.n}/12 (${pct}%)"><span class="pp">P</span><span class="pn">${pk.n}</span></div>`});
+// only known cars (plate in D.P) count toward the 12 spots; other stays are "car unknown"
+PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/12*100);g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" title="Parking ${k}/12 known cars (${pct}%)${u?` · ${u} car unknown`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
 g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
 L.forEach(([n],ri)=>{g+=`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:${gridW}px"></div>`});
 g+=`</div><div class="cols">`;
@@ -295,7 +303,7 @@ L.forEach(([name],ri)=>{
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
+    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
     let inner;
     if(gc>3){
       inner=`<span class="heads">${HEAD}</span><span class="n">${gl}</span>`;
@@ -304,7 +312,9 @@ L.forEach(([name],ri)=>{
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
     if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="last-minute booking">!</span>`+inner;
-    if(plate) inner+=CAR;
+    const trm=transportOf(code);
+    if(plate||(trm&&trm.m==="car")) inner+=CAR;
+    if(trm&&trm.m!=="car") inner+=TRI(trm.m,INK,10);
     inner+=`<span class="g">${esc(guest)}</span>`;
     g+=`<div class="bar${tier[0]==="c"?" judged "+tier:""}" id="bar-${esc(code)}" data-code="${esc(code)}" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px"><div class="bar-inner" style="background:${color}">${inner}</div></div>`;
   });
@@ -382,7 +392,9 @@ function stayCard(code){
   h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
   if(LAST_MIN.has(c)) h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(q[2]) h+=`<div>${esc(q[2])}</div>`;
-  if(plate) h+=`<div class="tip-car">${CARF("#111827",15)}${esc(plate)}</div>`;
+  const tr=transportOf(c);
+  if(plate) h+=`<div class="tip-car">${CARF("#111827",15)}${esc(plate)}${tr&&tr.m==="car"&&tr.note?` · ${esc(tr.note)}`:""}</div>`;
+  if(tr&&!(tr.m==="car"&&plate)) h+=`<div class="tip-tr">${tr.m==="car"?CARF("#111827",15):TRI(tr.m,"#111827",15)}${esc(TR_LABEL[tr.m])}${tr.note?` · ${esc(tr.note)}`:""}</div>`;
   h+=`<div class="tip-muted">${esc(c)}</div>`;
   return h;
 }
@@ -467,10 +479,10 @@ hookTip(grid, ".bar", b=>b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||"
 function pdayCard(el){
   const i=+el.dataset.pday, pk=PARK_DAY[i]; if(!pk) return "";
   const d=addDays(origin,i), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const pct=Math.round(pk.n/12*100);
-  let h=`<div class="tip-name">Parking · ${ymd} night</div><div>${pk.n}/12 stays · ${pct}%${pk.n>12?` · over by ${pk.n-12}`:""}</div>`;
+  const k=pk.cars.length, u=pk.n-k, pct=Math.round(k/12*100);
+  let h=`<div class="tip-name">P${k} · ${k}/12 · ${pct}%${k>12?` · +${k-12} over`:""}</div><div class="tip-listing">${ymd} night</div>`;
   pk.cars.forEach(c=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(c.plate)} · ${esc(c.listing)}</div>`});
-  h+=`<div class="tip-muted">${pk.n-pk.cars.length} without plate</div>`;
+  if(u>0) h+=`<div class="tip-muted">${u} stay${u===1?"":"s"}, car unknown</div>`;
   return h;
 }
 grid.addEventListener("mouseover",e=>{if(!fineHover())return;const b=e.target.closest(".pday");if(b)showTip(b,pdayCard(b),false)});
@@ -584,7 +596,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(realign);
 })();
 
-// Parking: one source of truth. Tonight = sleeping here tonight (start<=today<end, same rule as the per-day P row);
+// Parking: one source of truth (only known cars, i.e. a plate in D.P, are counted). Tonight = sleeping here tonight (start<=today<end, same rule as the per-day P row);
 // Now = in-house at the current Prague time (after 15:00 check-in, before 10:00 checkout). One car per counted stay, by listing.
 (function(){
   const SPOTS=12, TAN=Math.tan(20*Math.PI/180);
@@ -602,26 +614,34 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     now.sort(by); tonight.sort(by);
     return {now,tonight,today,hhmm:`${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")}`};
   }
+  const PFONT="-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif", PMONO="ui-monospace,'SF Mono',SFMono-Regular,Menlo,monospace";
+  // cars stay at the mirrored 20°; labels sit level in a row under each spot (outside the rotated group)
   function svg(cars){
-    const W=34,H=78,off=H*TAN,top=6,vbW=SPOTS*W+off+8, shown=cars.slice(0,SPOTS);
-    let h=`<svg viewBox="0 0 ${vbW} ${H+top*2}" width="100%" role="img" aria-label="${shown.length} of ${SPOTS} parking spots occupied" style="display:block"><rect x="0" y="0" width="${vbW}" height="${H+top*2}" rx="6" fill="#E5E7EB"/>`;
+    const W=36,H=70,off=H*TAN,top=6,labelH=30,vbW=SPOTS*W+off+8,vbH=H+top*2+labelH, shown=cars.slice(0,SPOTS);
+    const fit=(t,fs,pc,av)=>t.length*fs*pc>av?` textLength="${av}" lengthAdjust="spacingAndGlyphs"`:"";
+    let h=`<svg viewBox="0 0 ${vbW} ${vbH}" width="100%" role="img" aria-label="${shown.length} of ${SPOTS} parking spots taken by known cars" style="display:block"><rect x="0" y="0" width="${vbW}" height="${H+top*2}" rx="6" fill="#E5E7EB"/>`;
     for(let i=0;i<SPOTS;i++){
-      const x0=4+i*W, c=shown[i], cx=x0+W/2+off/2, cy=top+H/2, k=!!(c&&c.plate);
+      const x0=4+i*W, c=shown[i], cx=x0+W/2+off/2, cy=top+H/2, base=x0+W/2+2;
+      const lh=i===0?base-2:shown[i-1]?W/2-1.5:W-2, rh=i===SPOTS-1?vbW-base-2:shown[i+1]?W/2-1.5:W-2, av=Math.min(lh,rh,W)*2;
       h+=`<polygon points="${x0+off},${top} ${x0+W+off},${top} ${x0+W},${top+H} ${x0},${top+H}" fill="${c?"#D1D5DB":"#F9FAFB"}" stroke="#6B7280" stroke-width="1"${c?"":' stroke-dasharray="3 2"'}/>`;
-      if(c) h+=`<g data-park-car="${esc(c.code)}" data-listing="${esc(c.listing)}" data-plate="${esc(c.plate)}" transform="translate(${cx} ${cy}) rotate(20)"><rect x="-11" y="-31" width="22" height="62" rx="7" fill="${k?"#334155":"#E2E8F0"}" stroke="${k?"none":"#94A3B8"}" stroke-width="1"/><rect x="-9" y="-25" width="18" height="6" rx="2" fill="${k?"#93C5FD":"#F8FAFC"}"/><rect x="-9" y="21" width="18" height="5" rx="2" fill="${k?"#93C5FD":"#F8FAFC"}"/><g transform="rotate(90)"><text x="0" y="0" text-anchor="middle" font-size="7.5" font-weight="700" fill="${k?"#FFFFFF":"#1F2937"}" font-family="system-ui,sans-serif"${c.listing.length>8?' textLength="38" lengthAdjust="spacingAndGlyphs"':""}>${esc(c.listing)}</text><text x="0" y="8" text-anchor="middle" font-size="6.5" font-weight="${k?700:500}" font-style="${k?"normal":"italic"}" fill="${k?"#FDE68A":"#475569"}" font-family="system-ui,sans-serif">${k?esc(c.plate):"no plate"}</text></g></g>`;
-      else h+=`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="8" fill="#6B7280" font-family="system-ui,sans-serif">${i+1}</text>`;
+      if(c) h+=`<g data-park-car="${esc(c.code)}" data-listing="${esc(c.listing)}" data-plate="${esc(c.plate)}" transform="translate(${cx} ${cy}) rotate(20)"><rect x="-11" y="-28" width="22" height="56" rx="7" fill="#334155"/><rect x="-9" y="-21" width="18" height="8" rx="2" fill="#93C5FD"/><rect x="-9" y="15" width="18" height="6" rx="2" fill="#93C5FD"/></g>`+
+        `<g data-park-label="${esc(c.code)}"><text x="${base}" y="${top*2+H+10}" text-anchor="middle" font-size="11" font-weight="600" fill="#111827" font-family="${PFONT}"${fit(c.listing,11,.56,av)}>${esc(c.listing)}</text><text x="${base}" y="${top*2+H+23}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#374151" font-family="${PMONO}"${fit(c.plate,9.5,.62,av)}>${esc(c.plate.toUpperCase())}</text></g>`;
+      else h+=`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="8" fill="#6B7280" font-family="${PFONT}">${i+1}</text>`;
     }
     return h+`</svg>`;
   }
   function render(){
-    const info=stays(), list=mode==="tonight"?info.tonight:info.now, n=list.length, withPlate=list.filter(x=>x.plate).length, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
-    cnt.textContent=`Tonight ${Math.round(info.tonight.length/SPOTS*100)}%`; cnt.dataset.parkCapsule=String(info.tonight.length);
+    // only stays with a known plate (D.P) are cars; the rest are "car unknown" and never counted
+    const info=stays(), all=mode==="tonight"?info.tonight:info.now, list=all.filter(x=>x.plate), n=list.length, unknown=all.length-n, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
+    const tonightCars=info.tonight.filter(x=>x.plate).length;
+    cnt.textContent=`Tonight ${Math.round(tonightCars/SPOTS*100)}%`; cnt.dataset.parkCapsule=String(tonightCars);
     const col=pct>=100?"#BE123C":pct>=50?"#B45309":"#1D4ED8";
     panel.innerHTML=`<div class="ph" style="align-items:center"><span>Parking</span><span class="ptabs" role="tablist"><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
-      `<div class="psum" data-park-n="${n}" data-park-plated="${withPlate}"><b>${n}/${SPOTS} · ${pct}%</b><span>· ${withPlate} with plate</span>${over>0?`<span class="povr" data-park-over="${over}">+${over} over</span>`:""}</div>`+
+      `<div class="psum" data-park-n="${n}" data-park-unknown="${unknown}"><b>${n}/${SPOTS} · ${pct}%</b><span>· known car${n===1?"":"s"}</span>${over>0?`<span class="povr" data-park-over="${over}">+${over} over</span>`:""}</div>`+
       `<div class="pbar"><div style="width:${Math.min(100,pct)}%;background:${col}"></div></div>${svg(list)}`+
-      `<div class="pnote" style="margin-top:4px">${mode==="tonight"?`Sleeping here tonight (${info.today})`:`In-house now (${info.hhmm} Prague; check-in 15:00, checkout 10:00)`}</div>`+
-      `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span>${x.plate?`<span class="pl">${CARF("#111827",12)}${esc(x.plate)}</span>`:`<span class="np">no plate</span>`}</div>`).join(""):`<div class="pnote">No stays counted.</div>`}</div>`;
+      `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} other stay${unknown===1?"":"s"} ${mode==="tonight"?"tonight":"in-house now"} · car unknown</div>`+
+      `<div class="pnote" style="color:#6B7280">${mode==="tonight"?`Sleeping here tonight (${info.today})`:`In-house now (${info.hhmm} Prague)`} · only stays with a known plate count</div>`+
+      `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">No known cars.</div>`}</div>`;
   }
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");if(on)render();}
   btn.addEventListener("click",()=>setOpen(!panel.classList.contains("open")));
