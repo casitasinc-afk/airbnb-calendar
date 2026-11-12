@@ -159,6 +159,18 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar svg.tr{flex-shrink:0}
 #tip .tip-car{font-weight:700;display:flex;align-items:center;gap:5px}
 .uk-row .carf{flex-shrink:0}
+.eta{display:inline-flex;align-items:center;gap:1px;flex-shrink:0;margin-left:2px;font-size:10px;font-weight:700;color:#0F766E;font-variant-numeric:tabular-nums;white-space:nowrap}
+.uk-ln .eta{font-size:9.5px;margin-left:2px}
+.uk-row.has-eta{flex-wrap:wrap;row-gap:0}
+.uk-row.has-eta .nm{flex:0 1 auto}
+.uk-ln .eta svg{margin-right:1px}
+#tip .tip-eta{font-weight:700;display:flex;align-items:center;gap:5px;color:#0F766E}
+#park-body,#park-panel .pstays{touch-action:pan-y}
+#park-panel.swiping,#park-panel.swiping *{user-select:none;-webkit-user-select:none;cursor:grabbing}
+#park-panel .pnav{display:inline-flex;align-items:center;gap:4px;min-width:0}
+#park-panel .pnav button{border:1px solid #D1D5DB;background:#fff;border-radius:6px;width:24px;height:22px;padding:0;font-size:15px;line-height:18px;font-weight:700;color:#111827;cursor:pointer;flex-shrink:0}
+#park-panel .pnav button:disabled{opacity:.35;cursor:default}
+#park-tuck .pt-nav{margin-left:auto;color:#9CA3AF;font-weight:600;font-size:12px}
 .pdays{height:20px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
 .pday{width:var(--day-w);flex-shrink:0;border-right:1px solid var(--b-subtle);display:flex;align-items:center;justify-content:center;gap:2px;cursor:pointer}
 .pday > *{pointer-events:none}
@@ -238,7 +250,11 @@ const TRI=(m,c,sz)=>`<svg class="tr" width="${sz}" height="${sz}" viewBox="0 0 1
 // Plates per stay (D.P value "PLATE1 / PLATE2" from refresh.py; also tolerates lists and "+" / "," separators). One car per plate.
 function platesOf(code){const v=D.P&&D.P[code];if(!v)return [];return (Array.isArray(v)?v:String(v).split(/\s*[\/+,;]\s*/)).map(x=>String(x).trim()).filter(Boolean)}
 function transportOf(code){const t=D.T&&D.T[code];if(t&&TR_LABEL[t[0]])return {m:t[0],note:t[1]||""};if(D.P&&D.P[code])return {m:"car",note:""};return null}
-const CAR=`<svg class="car" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
+const CAR=`<svg class="car" width="12" height="7" viewBox="1.5 5.3 13 7.6" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
+// Stated arrival time (D.E from eta.json: code → "19:00" / "~19:00" / "23:00–01:00" / "20:00+"). Unknown → nothing shown.
+const etaOf=code=>(D.E&&D.E[code])||"";
+const etaShort=v=>String(v).replace(/:00/g,"");
+const CLOCK=(c,sz)=>`<svg class="clk" width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><circle cx="8" cy="8" r="6.3" fill="none" stroke="${c}" stroke-width="1.7"/><path d="M8 4.4V8l2.6 1.6" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
@@ -339,7 +355,7 @@ L.forEach(([name],ri)=>{
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
+    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
     let inner;
     if(gc>3){
       inner=`<span class="heads">${HEAD}</span><span class="n">${gl}</span>`;
@@ -502,6 +518,7 @@ function stayCard(code){
   const tr=transportOf(c);
   platesOf(c).forEach((pl,j)=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(pl)}${j===0&&tr&&tr.m==="car"&&tr.note?` · ${esc(tr.note)}`:""}</div>`});
   if(tr&&!(tr.m==="car"&&plate)) h+=`<div class="tip-tr">${tr.m==="car"?CARF("#111827",15):TRI(tr.m,"#111827",15)}${esc(TR_LABEL[tr.m])}${tr.note?` · ${esc(tr.note)}`:""}</div>`;
+  if(etaOf(c)) h+=`<div class="tip-eta" data-tip-eta="${esc(etaOf(c))}">${CLOCK("#0F766E",15)}ETA ${esc(etaOf(c))}</div>`;
   h+=`<div class="tip-muted">${esc(c)}</div>`;
   return h;
 }
@@ -513,6 +530,7 @@ function ukCard(el){
   let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
   if(turn) h+=`<div>same-day turnaround</div>`;
+  if(el.dataset.eta) h+=`<div class="tip-eta" data-tip-eta="${esc(el.dataset.eta)}">${CLOCK("#0F766E",15)}ETA ${esc(el.dataset.eta)}</div>`;
   if(el.dataset.lm==="1") h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(el.dataset.plate) el.dataset.plate.split(/\s*[\/+,;]\s*/).filter(Boolean).forEach(pl=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(pl)}</div>`});
   return h;
@@ -621,7 +639,7 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}</div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta?" has-eta":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?" · ETA "+it.eta:"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -631,7 +649,7 @@ let UK_TODAY_N=null;
     const label=`${CZ_WD[day.getDay()]} ${day.getDate()}.${day.getMonth()+1}`;
     const outs=[], inns=[];
     D.R.forEach(r=>{
-      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||""};
+      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||"",eta:r[3]===iso?etaOf(r[0]):""};
       if(r[4]===iso) outs.push(item);
       if(r[3]===iso) inns.push(item);
     });
@@ -641,7 +659,7 @@ let UK_TODAY_N=null;
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${esc(it.listing)}</span>`).join(""):"—"}</div>`;
+    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?" · ETA "+it.eta:"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${esc(it.listing)}${k==="in"&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
     const [wd,dm]=label.split(" ");
     const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
@@ -707,8 +725,8 @@ function makeSheet(o){
   let d=null;
   const begin=(e,zone)=>{if(e.pointerType==="mouse"&&e.button!==0)return;d={id:e.pointerId,zone,y0:e.clientY,x0:e.clientX,h0:cur(),moved:false,pts:[[e.clientY,e.timeStamp]],mouse:e.pointerType==="mouse"};
     if(zone==="handle"){try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}}};
-  const move=e=>{if(!d||e.pointerId!==d.id)return;const dy=e.clientY-d.y0,dx=e.clientX-d.x0,slop=d.mouse?5:10;
-    if(!d.moved){if(Math.abs(dy)<=slop&&Math.abs(dx)<=slop)return;if(d.zone!=="handle"&&Math.abs(dy)<=Math.abs(dx)){d=null;return}
+  const move=e=>{if(!d||e.pointerId!==d.id)return;const dy=e.clientY-d.y0,dx=e.clientX-d.x0,slop=d.mouse?5:8;
+    if(!d.moved){if(Math.max(Math.abs(dy),Math.abs(dx))<=(o.hAxis?8:slop))return;if((d.zone!=="handle"||o.hAxis)&&Math.abs(dy)<=Math.abs(dx)){d=null;return}
       d.moved=true;clearTimeout(S.timer);w.style.transition="none";w.classList.add("sized");w.style.flex="0 0 auto";hideTip();
       if(d.zone!=="handle"){try{e.target.setPointerCapture(e.pointerId)}catch(_){}}}
     e.preventDefault();
@@ -818,6 +836,10 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     }
     return h+`</svg>`;
   }
+  const curNight=()=>day||pragueParts().ymd;
+  const addYmd=(ymd,n)=>{const d=new Date(`${ymd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+  /** Carousel step: previous (-1) / next (+1) night; the title, drawing and unknown note follow. Returns false at the range ends. */
+  function shiftNight(dir){const nx=addYmd(curNight(),dir);if(nx<D.a||nx>D.b)return false;day=nx;render();return true}
   function render(){
     // only stays with a known plate (D.P) are cars; the rest are "car unknown" and never counted
     const info=stays(), all=day?stays(day).tonight:mode==="tonight"?info.tonight:info.now, list=all.flatMap(x=>platesOf(x.code).map((pl,j)=>({...x,plate:pl,car:j}))), n=list.length, unknown=all.filter(x=>!x.plate).length, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
@@ -825,8 +847,9 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     cnt.textContent=`Tonight ${Math.round(tonightCars/SPOTS*100)}%`; cnt.dataset.parkCapsule=String(tonightCars);
     const col=pct>=100?"#BE123C":pct>=50?"#B45309":"#1D4ED8";
     const tuckEl=document.getElementById("park-tuck");
-    if(tuckEl) tuckEl.innerHTML=`<span>P</span><span>${day?esc(dayLabel(day)):mode==="tonight"?"Tonight":"Now"}</span><span class="pt-sub" data-park-tuck-n="${n}">${n}/${SPOTS} · ${pct}%</span>`;
-    document.getElementById("park-body").innerHTML=`<div class="ph" style="align-items:center"><span class="ptitle" data-park-title="${day||""}">${day?`Parking · ${dayLabel(day)} · ${n}/${SPOTS} · ${pct}%`:"Parking"}</span><span class="ptabs" role="tablist"${day?' style="display:none"':""}><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
+    if(tuckEl) tuckEl.innerHTML=`<span>P</span><span>${day?esc(dayLabel(day)):mode==="tonight"?"Tonight":"Now"}</span><span class="pt-sub" data-park-tuck-n="${n}">${n}/${SPOTS} · ${pct}%</span><span class="pt-nav" aria-hidden="true">‹ swipe ›</span>`;
+    const cur=curNight();
+    document.getElementById("park-body").innerHTML=`<div class="ph" style="align-items:center"><span class="pnav"><button type="button" data-park-nav="-1" aria-label="Previous night"${cur<=D.a?" disabled":""}>‹</button><span class="ptitle" data-park-title="${day||""}">${day?`Parking · ${dayLabel(day)} · ${n}/${SPOTS} · ${pct}%`:"Parking"}</span><button type="button" data-park-nav="1" aria-label="Next night"${cur>=D.b?" disabled":""}>›</button></span><span class="ptabs" role="tablist"${day?' style="display:none"':""}><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
       `<div class="psum" data-park-n="${n}" data-park-unknown="${unknown}"><b>${n}/${SPOTS} · ${pct}%</b><span>· known car${n===1?"":"s"}</span>${over>0?`<span class="povr" data-park-over="${over}">+${over} over</span>`:""}</div>`+
       `<div class="pbar"><div style="width:${Math.min(100,pct)}%;background:${col}"></div></div>${svg(list)}`+
       `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} other stay${unknown===1?"":"s"} ${day?"that night":mode==="tonight"?"tonight":"in-house now"} · car unknown</div>`+
@@ -834,7 +857,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
       `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">No known cars.</div>`}</div>`;
   }
   // bottom sheet: P button / capsule / P cell open it expanded; the handle drags or tucks it (tucked = title + N/12 · %); P button closes
-  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,
+  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,hAxis:true,
     visible:()=>panel.classList.contains("open"),
     onView:t=>panel.classList.toggle("tucked",t),
     onState:()=>{panel.dataset.parkSheet=PSHEET.tucked?"tucked":"open";savePark()}});
@@ -844,7 +867,37 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   btn.addEventListener("click",()=>{day=null;setOpen(!panel.classList.contains("open"))});
   cnt.addEventListener("click",()=>{day=null;mode="tonight";setOpen(true)});
   window.openParkingFor=ymd=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(ymd||""))return;day=ymd;setOpen(true)};
-  panel.addEventListener("click",e=>{const t=e.target.closest("[data-park-tab]");if(!t)return;mode=t.dataset.parkTab;render()});
+  panel.addEventListener("click",e=>{const nv=e.target.closest("[data-park-nav]");if(nv){slideTo(+nv.dataset.parkNav);return}const t=e.target.closest("[data-park-tab]");if(!t)return;mode=t.dataset.parkTab;render()});
+  panel.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();slideTo(e.key==="ArrowLeft"?-1:1)}});
+  // Carousel: swipe / mouse-drag sideways anywhere on the panel → previous / next night, snapping per day.
+  // The axis locks after 8 px: sideways = carousel, vertical = bottom-sheet drag (handle) or list scroll (body).
+  const slides=()=>[document.getElementById("park-body"),document.getElementById("park-tuck")];
+  const setX=(x,ms)=>slides().forEach(el=>{el.style.transition=ms?`transform ${ms}ms cubic-bezier(.32,.72,0,1),opacity ${ms}ms`:"none";el.style.transform=x?`translateX(${x}px)`:"";el.style.opacity=x?String(Math.max(.35,1-Math.abs(x)/(panel.clientWidth||300))):""});
+  let busy=false;
+  function slideTo(dir){
+    if(busy)return; const nx=addYmd(curNight(),dir); if(nx<D.a||nx>D.b){setX(0,200);return}
+    busy=true; const W=panel.clientWidth||300; setX(-dir*W*.6,160);
+    setTimeout(()=>{shiftNight(dir);setX(dir*W*.35,0);void panel.offsetWidth;setX(0,220);setTimeout(()=>{busy=false},230)},165);
+  }
+  let sw=null;
+  panel.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"&&e.button!==0)return;sw={id:e.pointerId,x0:e.clientX,y0:e.clientY,lock:null,pts:[[e.clientX,e.timeStamp]]}});
+  panel.addEventListener("pointermove",e=>{
+    if(!sw||e.pointerId!==sw.id)return; const dx=e.clientX-sw.x0, dy=e.clientY-sw.y0;
+    if(!sw.lock){if(Math.max(Math.abs(dx),Math.abs(dy))<=8)return; sw.lock=Math.abs(dx)>Math.abs(dy)?"x":"y";
+      if(sw.lock==="y"){sw=null;return} try{panel.setPointerCapture(e.pointerId)}catch(_){} panel.classList.add("swiping"); hideTip();}
+    e.preventDefault(); sw.pts.push([e.clientX,e.timeStamp]); while(sw.pts.length>2&&e.timeStamp-sw.pts[0][1]>100)sw.pts.shift();
+    const nx=addYmd(curNight(),dx<0?1:-1), edge=nx<D.a||nx>D.b; setX(edge?dx*.3:dx,0);
+  });
+  const swEnd=e=>{
+    if(!sw||e.pointerId!==sw.id)return; const s0=sw; sw=null; if(s0.lock!=="x")return;
+    panel.classList.remove("swiping"); SHEET_DRAG_AT=Date.now();
+    const dx=e.clientX-s0.x0, p0=s0.pts[0], p1=s0.pts[s0.pts.length-1], dt=p1[1]-p0[1], v=e.type==="pointerup"&&dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0;
+    const W=panel.clientWidth||300, dir=(dx<-Math.min(60,W*.18)||v<-.4)?1:(dx>Math.min(60,W*.18)||v>.4)?-1:0;
+    if(e.type!=="pointerup"||!dir){setX(0,220);return}
+    const nx=addYmd(curNight(),dir); if(nx<D.a||nx>D.b){setX(0,220);return}
+    busy=true; setX(-dir*W,150); setTimeout(()=>{shiftNight(dir);setX(dir*W*.35,0);void panel.offsetWidth;setX(0,220);setTimeout(()=>{busy=false},230)},155);
+  };
+  panel.addEventListener("pointerup",swEnd); panel.addEventListener("pointercancel",swEnd);
   render(); setInterval(render,60000);
   try{if(localStorage.getItem("parkOpen")==="1"){panel.classList.add("open");btn.setAttribute("aria-expanded","true");panel.setAttribute("aria-hidden","false");if(PSHEET.tucked)PSHEET.tuck(false);else PSHEET.expand(false)}}catch(_){}
 })();
@@ -864,7 +917,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""];
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${listing} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}`;
+    const t=`${guest} · ${listing} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}`;
     return {code,listing,guest,s,e,plate,hay:norm([guest,plate,t].join(" "))};
   });
   function openPanel(on){
