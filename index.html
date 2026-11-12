@@ -165,6 +165,25 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .nrow.turn span{font-weight:600}
 .uk-row.turn span{font-weight:600}
 .uk-col .nowline{z-index:6}
+/* tuckable uklidy: handle + two compact lines (odjezdy / příjezdy) per day */
+#uk-wrap{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;transition:max-height 360ms cubic-bezier(.32,.72,0,1)}
+#uk-wrap #uklidy{border-top:0}
+#uk-handle{height:18px;flex:0 0 18px;display:flex;align-items:center;gap:5px;padding:0 6px;border-top:1px solid var(--b-subtle);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;color:var(--t3);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+#uk-handle svg{flex-shrink:0;transition:transform 360ms cubic-bezier(.32,.72,0,1)}
+#uk-wrap.tucked #uk-handle svg{transform:rotate(180deg)}
+#uk-handle .uk-sum{text-transform:none;letter-spacing:0;font-weight:500}
+#uk-handle .uk-grip{margin-left:auto;width:36px;height:4px;border-radius:2px;background:var(--b-default)}
+.uk-cmp{display:none;grid-template-columns:24px minmax(0,1fr);grid-template-rows:16px 16px;row-gap:1px;column-gap:2px}
+#uk-wrap.tucked .uk-cmp{display:grid}
+#uk-wrap.tucked .uk-mark,#uk-wrap.tucked .uk-h,#uk-wrap.tucked .uk-list{display:none}
+.uk-cmp .d{font-size:10px;font-weight:600;color:var(--t2);line-height:16px;white-space:nowrap}
+.uk-ln{height:16px;line-height:16px;border-radius:4px;padding:0 3px;font-size:11px;font-weight:500;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.uk-col.muted .uk-cmp .d,.uk-col.muted .uk-ln{color:var(--t3)}
+.uk-ln.out{background:rgba(255,56,92,.08)}
+.uk-ln.in{background:rgba(40,160,80,.08)}
+.uk-ln b{font-weight:700;margin-right:3px}
+.uk-ln .t{font-weight:600}
+.uk-ln .lm{display:inline-block;min-width:11px;height:11px;border-radius:999px;background:#E11D48;color:#FFFFFF;font-size:9px;font-weight:800;line-height:11px;text-align:center;margin-right:2px;vertical-align:1px}
 </style>
 </head>
 <body>
@@ -174,7 +193,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
     <div id="names"></div>
     <div id="scroller"><div id="grid"></div></div>
   </div>
-  <div id="uklidy"></div>
+  <div id="uk-wrap" data-uk-wrap="open"><div id="uk-handle" data-uk-handle role="button" tabindex="0" aria-expanded="true" aria-label="Tuck cleaning panel to two lines"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Úklidy</span><span class="uk-sum"></span><span class="uk-grip" aria-hidden="true"></span></div><div id="uklidy"></div></div>
 </div>
 <div id="tip"></div>
 <button type="button" id="park-btn" aria-label="Parking" aria-expanded="false"><span>P</span></button><button type="button" id="park-count" aria-label="Parking tonight"></button>
@@ -504,6 +523,7 @@ document.addEventListener("pointerdown",e=>{
 
 
 // Uklidy: scrollable past ← dnes/zítra/pozítří → future; gray outside focus
+let UK_TODAY_N=null;
 (function(){
   const CZ_WD=["ne","po","út","st","čt","pá","so"];
   const UK_COL_W=118;
@@ -533,7 +553,11 @@ document.addEventListener("pointerdown",e=>{
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
+    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${esc(it.listing)}</span>`).join(""):"—"}</div>`;
+    const [wd,dm]=label.split(" ");
+    const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
+    if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
+    html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}${compact}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
     html+=`<div class="uk-sec out"><div class="uk-sub">Odjezdy</div>`;
     html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
     html+=`</div><div class="uk-rule"></div><div class="uk-sec in"><div class="uk-sub">Příjezdy</div>`;
@@ -559,6 +583,30 @@ document.addEventListener("pointerdown",e=>{
   })();
 })();
 
+// Tap the uklidy handle (not a drag: 5px mouse / 10px touch slop) → tuck to two compact lines; tap again to expand. State in localStorage.
+(function(){
+  const w=document.getElementById("uk-wrap"), h=document.getElementById("uk-handle"), KEY="uklidyTucked", TUCK=18+3+16*2+2;
+  const sum=h.querySelector(".uk-sum"); if(UK_TODAY_N) sum.textContent=`· dnes odj ${UK_TODAY_N[0]} · příj ${UK_TODAY_N[1]}`;
+  let tucked=false, openH=0, tap=null;
+  try{tucked=localStorage.getItem(KEY)==="1"}catch(e){}
+  const mark=()=>{w.dataset.ukWrap=tucked?"tucked":"open";h.setAttribute("aria-expanded",tucked?"false":"true");h.setAttribute("aria-label",tucked?"Expand cleaning panel":"Tuck cleaning panel to two lines")};
+  if(tucked){w.classList.add("tucked");w.style.maxHeight=TUCK+"px"} mark();
+  function toggle(){
+    if(typeof hideTip==="function") hideTip();
+    if(!tucked){
+      openH=w.getBoundingClientRect().height; w.style.maxHeight=openH+"px"; void w.offsetHeight;
+      tucked=true; requestAnimationFrame(()=>{w.classList.add("tucked");w.style.maxHeight=TUCK+"px"});
+    }else{
+      tucked=false; w.classList.remove("tucked"); w.style.maxHeight=(openH>TUCK+8?openH:Math.round(innerHeight*.34))+"px";
+    }
+    mark(); try{localStorage.setItem(KEY,tucked?"1":"0")}catch(e){}
+  }
+  w.addEventListener("transitionend",e=>{if(e.target===w&&e.propertyName==="max-height"&&!tucked)w.style.maxHeight=""});
+  h.addEventListener("pointerdown",e=>{tap={x:e.clientX,y:e.clientY,mouse:e.pointerType==="mouse"}});
+  h.addEventListener("pointercancel",()=>{tap=null});
+  h.addEventListener("pointerup",e=>{const d=tap;tap=null;if(!d)return;const s=d.mouse?5:10;if(Math.abs(e.clientX-d.x)>s||Math.abs(e.clientY-d.y)>s)return;toggle()});
+  h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle()}});
+})();
 // Calendar ↔ uklidy now-line coupling: uklidy follows the calendar so both red lines share one screen x.
 // Sliding uklidy decouples it; when a slide ends within half a column of the calendar line it snaps back and re-couples.
 const NOW_SYNC={cal:sc,uk:NOW_SYNC_UK(),coupled:true,prog:-1,held:false,anim:0,endTimer:0};
