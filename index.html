@@ -39,7 +39,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar.hit .bar-inner{box-shadow:0 0 0 2px #1F78B4,0 0 8px rgba(31,120,180,.55)}
 #shell{display:flex;flex:0 1 auto;min-height:120px;border:1px solid var(--b-default);border-radius:8px;overflow-x:hidden;overflow-y:auto;background:var(--bg);user-select:none;-webkit-user-select:none;align-items:flex-start}
 #names{width:var(--name-w);flex-shrink:0;border-right:1px solid var(--b-default);background:var(--bg);z-index:2}
-.nhead{height:var(--head-h);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
+.nhead{height:calc(var(--head-h) + 14px);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
 .nrow{height:var(--row-h);display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid var(--b-subtle);background:var(--row-even)}
 .nrow.odd{background:var(--row-odd)}
 .nrow span{font-size:13px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -126,7 +126,15 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #tip .tip-name{font-weight:700;font-size:13px}
 #tip .tip-listing{font-weight:600;color:#374151}
 #tip .tip-muted{color:#4B5563;font-size:11px}
-#tip .tip-car{font-weight:700}
+#tip .tip-car{font-weight:700;display:flex;align-items:center;gap:5px}
+.uk-row .carf{flex-shrink:0}
+.pdays{height:14px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
+.pday{width:var(--day-w);flex-shrink:0;border-right:1px solid var(--b-subtle);display:flex;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+.pday > *{pointer-events:none}
+.pday .pp{width:10px;height:10px;border-radius:2px;color:#FFFFFF;font:800 8px/10px system-ui,sans-serif;text-align:center;background:#64748B}
+.pday.amber .pp{background:#B45309}
+.pday.red .pp{background:#BE123C}
+.pday .pn{font-size:9px;font-weight:600;color:var(--t2);line-height:10px}
 
 @keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
 #meta .online{color:#1B7A3D;font-weight:600}
@@ -171,6 +179,7 @@ const H={roof:"#1E4A7A",body:"#2E5A8C",win:"#D6E4F2"};
 const LOD=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" style="flex-shrink:0"><path d="M8 10 L24 3 L40 10 Z" fill="${B.roof}"/><rect x="10" y="10" width="28" height="10" fill="${B.cabin}"/><rect x="14" y="12" width="5" height="4" fill="${B.win}"/><rect x="21.5" y="12" width="5" height="4" fill="${B.win}"/><rect x="29" y="12" width="5" height="4" fill="${B.win}"/><path d="M2 20 H46 L42 26 H6 Z" fill="${B.hull}"/><path d="M0 28.5 q3 -2 6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0 t6 0" stroke="${B.water}" stroke-width="1.2" fill="none"/></svg>`;
 const DUM=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" style="flex-shrink:0"><path d="M8 14 L24 3 L40 14 Z" fill="${H.roof}"/><rect x="12" y="14" width="24" height="14" fill="${H.body}"/><rect x="15" y="17" width="5" height="4" fill="${H.win}"/><rect x="28" y="17" width="5" height="4" fill="${H.win}"/><rect x="21.5" y="20" width="5" height="8" fill="${H.win}"/></svg>`;
 const HEAD=`<svg width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="3.1" fill="${INK}"/><path d="M2.2 14.2c.6-3.2 2.8-4.8 5.8-4.8s5.2 1.6 5.8 4.8" fill="${INK}"/></svg>`;
+const CARF=(c,sz)=>`<svg class="carf" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><path d="M5.5 10.5 7.2 6.4A2 2 0 0 1 9.05 5.2h5.9a2 2 0 0 1 1.85 1.2l1.7 4.1A2.5 2.5 0 0 1 20 12.8V17a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-1H7.2v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4.2a2.5 2.5 0 0 1 1.5-2.3Z" fill="${c}"/><path d="M7.6 10.2h8.8l-1.2-3a.8.8 0 0 0-.75-.5h-5.1a.8.8 0 0 0-.75.5Z" fill="#FFFFFF" opacity="0.9"/><circle cx="7.3" cy="13.2" r="1.1" fill="#FFFFFF"/><circle cx="16.7" cy="13.2" r="1.1" fill="#FFFFFF"/></svg>`;
 const CAR=`<svg class="car" width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
@@ -249,6 +258,10 @@ let g=`<div class="months">`;
 for(let i=0;i<days.length;){const d=days[i].d;let j=i+1;while(j<days.length&&days[j].d.getMonth()===d.getMonth())j++;g+=`<div class="month" style="width:${(j-i)*DAY_W}px"><span class="ml">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span></div>`;i=j}
 g+=`</div><div class="days">`;
 days.forEach(x=>{g+=`<div class="day${x.we?" we":""}${x.today?" today":""}"><span class="wd">${WEEKDAYS[x.wd]}</span><span class="dn">${x.d.getDate()}</span></div>`});
+g+=`</div><div class="pdays">`;
+const PARK_DAY=Array.from({length:dayCount},()=>({n:0,cars:[]}));
+D.R.forEach(([code,listing,,s,e])=>{const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pl=D.P&&D.P[code];for(let i=a;i<b;i++){PARK_DAY[i].n++;if(pl)PARK_DAY[i].cars.push({listing,plate:pl});}});
+PARK_DAY.forEach((pk,i)=>{const pct=Math.round(pk.n/12*100);g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" title="Parking ${pk.n}/12 (${pct}%)"><span class="pp">P</span><span class="pn">${pk.n}</span></div>`});
 g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
 L.forEach(([n],ri)=>{g+=`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:${gridW}px"></div>`});
 g+=`</div><div class="cols">`;
@@ -354,7 +367,7 @@ function stayCard(code){
   h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
   if(LAST_MIN.has(c)) h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(q[2]) h+=`<div>${esc(q[2])}</div>`;
-  if(plate) h+=`<div class="tip-car">Car: ${esc(plate)}</div>`;
+  if(plate) h+=`<div class="tip-car">${CARF("#111827",15)}${esc(plate)}</div>`;
   h+=`<div class="tip-muted">${esc(c)}</div>`;
   return h;
 }
@@ -367,6 +380,7 @@ function ukCard(el){
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
   if(turn) h+=`<div>same-day turnaround</div>`;
   if(el.dataset.lm==="1") h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
+  if(el.dataset.plate) h+=`<div class="tip-car">${CARF("#111827",15)}${esc(el.dataset.plate)}</div>`;
   return h;
 }
 function hideTip(){
@@ -435,6 +449,18 @@ function hookTip(root, selector, htmlOf){
   });
 }
 hookTip(grid, ".bar", b=>b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||""));
+function pdayCard(el){
+  const i=+el.dataset.pday, pk=PARK_DAY[i]; if(!pk) return "";
+  const d=addDays(origin,i), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const pct=Math.round(pk.n/12*100);
+  let h=`<div class="tip-name">Parking · ${ymd} night</div><div>${pk.n}/12 stays · ${pct}%${pk.n>12?` · over by ${pk.n-12}`:""}</div>`;
+  pk.cars.forEach(c=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(c.plate)} · ${esc(c.listing)}</div>`});
+  h+=`<div class="tip-muted">${pk.n-pk.cars.length} without plate</div>`;
+  return h;
+}
+grid.addEventListener("mouseover",e=>{if(!fineHover())return;const b=e.target.closest(".pday");if(b)showTip(b,pdayCard(b),false)});
+grid.addEventListener("mouseout",e=>{if(!fineHover()||tipPinned)return;const b=e.target.closest(".pday");if(!b)return;const to=e.relatedTarget;if(to&&(b.contains(to)||tip.contains(to)))return;hideTip()});
+grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".pday");if(!b)return;tipTapAt=Date.now();showTip(b,pdayCard(b),true)});
 const hideOnScroll=()=>{if(Date.now()-tipTapAt<450)return;hideTip()};
 sc.addEventListener("scroll",hideOnScroll,{passive:true});
 sc.addEventListener("pointermove",e=>{if(drag&&drag.m) hideTip()});
@@ -444,7 +470,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape") hideTip()});
 document.addEventListener("pointerdown",e=>{
   if(tip.style.display==="none") return;
   if(e.target.closest("#tip")) return;
-  if(e.target.closest(".bar")||e.target.closest(".uk-row")) return;
+  if(e.target.closest(".bar")||e.target.closest(".uk-row")||e.target.closest(".pday")) return;
   hideTip();
 });
 
@@ -459,7 +485,7 @@ document.addEventListener("pointerdown",e=>{
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span></div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -469,7 +495,7 @@ document.addEventListener("pointerdown",e=>{
     const label=`${CZ_WD[day.getDay()]} ${day.getDate()}.${day.getMonth()+1}`;
     const outs=[], inns=[];
     D.R.forEach(r=>{
-      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0])};
+      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||""};
       if(r[4]===iso) outs.push(item);
       if(r[3]===iso) inns.push(item);
     });
@@ -569,14 +595,14 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   }
   function render(){
     const info=now(), shown=info.cars.slice(0,SPOTS), over=info.cars.length-shown.length, pct=Math.round(shown.length/SPOTS*100);
-    const nightShown=Math.min(info.night,SPOTS), nightPct=Math.round(nightShown/SPOTS*100);
+    const nightShown=Math.min(info.nightIn,SPOTS), nightPct=Math.round(nightShown/SPOTS*100);
     cnt.textContent=`Tonight ${nightPct}%`;
     const col=pct>=100?"#BE123C":pct>=75?"#B45309":"#1D4ED8";
     panel.innerHTML=`<div class="ph"><span>Parking</span><span>Now ${shown.length}/${SPOTS} · ${pct}% full</span></div><div class="pbar"><div style="width:${pct}%;background:${col}"></div></div>${svg(shown.map(c=>c.plate))}`+
       `<div class="plist">${shown.length?shown.map(c=>esc(`${c.plate} · ${c.listing} (${c.guest})`)).join("  ·  "):"No plates for guests in-house now."}</div>`+
       `<div class="pnote">In-house now: ${info.inHouse} · without plate: ${info.noPlate}</div>`+
       `<div class="ph" style="font-size:12px;margin:4px 0 0">Tonight ${nightShown}/${SPOTS} · ${nightPct}% full</div>`+
-      `<div class="pnote">Staying tonight: ${info.nightIn} · without plate: ${info.nightIn-info.night}${info.night>SPOTS?` · overflow ${info.night-SPOTS}`:""}</div>`+
+      `<div class="pnote">Staying tonight: ${info.nightIn} · without plate: ${info.nightIn-info.night}${info.nightIn>SPOTS?` · overflow ${info.nightIn-SPOTS}`:""}</div>`+
       (over>0?`<div class="pover">Overflow: ${over} more car${over===1?"":"s"} than ${SPOTS} spots</div>`:"");
   }
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");if(on)render();}
@@ -617,8 +643,8 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     scroller.scrollLeft=Math.max(0,left-Math.max(24,(scroller.clientWidth-w)/2));
     if(shell){
       const sh=shell.getBoundingClientRect(), br=bar.getBoundingClientRect();
-      if(br.top<sh.top+HEAD_H||br.bottom>sh.bottom){
-        shell.scrollTop+=br.top-sh.top-HEAD_H-8;
+      if(br.top<sh.top+HEAD_H+14||br.bottom>sh.bottom){
+        shell.scrollTop+=br.top-sh.top-HEAD_H-14-8;
       }
     }
     clearTimeout(hitTimer);
