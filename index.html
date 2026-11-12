@@ -105,15 +105,15 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .uk-sec{border-radius:4px;padding:1px 3px 2px}
 .uk-sec.out{background:rgba(255,56,92,.08)}
 .uk-sec.in{background:rgba(40,160,80,.08)}
-.uk-row .lm{color:#D0021B;font-weight:800;font-size:13px;line-height:1;flex-shrink:0}
+.lm-pill,.uk-row .lm{display:inline-block;min-width:13px;height:13px;border-radius:999px;background:#E11D48;color:#FFFFFF;font-size:10px;font-weight:800;line-height:13px;text-align:center;flex-shrink:0}
 .bar .lm{flex-shrink:0;width:12px;height:12px;border-radius:999px;background:#E11D48;color:#fff;font-size:10px;font-weight:800;line-height:12px;text-align:center}
-.tip-lm{color:#B3261E;font-weight:700}
+.tip-lm{color:#BE123C;font-weight:700;display:flex;align-items:center;gap:4px}
 .uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .uk-empty{font-size:11px;color:var(--t3)}
-#tip{position:fixed;display:none;z-index:10000;max-width:min(280px,calc(100vw - 16px));background:#1E3A4C;color:#fff;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:auto}
+#tip{position:fixed;display:none;z-index:10000;max-width:min(280px,calc(100vw - 16px));background:#FFFFFF;color:#111827;border:1px solid #D1D5DB;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:auto}
 #tip .tip-name{font-weight:700;font-size:13px}
-#tip .tip-listing{font-weight:600}
-#tip .tip-muted{opacity:.7;font-size:11px}
+#tip .tip-listing{font-weight:600;color:#374151}
+#tip .tip-muted{color:#4B5563;font-size:11px}
 #tip .tip-car{font-weight:700}
 
 @keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
@@ -338,7 +338,7 @@ function stayCard(code){
   h+=`<div>${esc(s)} → ${esc(e)} · ${nights} night${nights===1?"":"s"}</div>`;
   h+=`<div>${esc(gl)} guest${gc===1?"":"s"}</div>`;
   h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
-  if(LAST_MIN.has(c)) h+=`<div class="tip-lm">${esc(LAST_MIN_TEXT)}</div>`;
+  if(LAST_MIN.has(c)) h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(q[2]) h+=`<div>${esc(q[2])}</div>`;
   if(plate) h+=`<div class="tip-car">Car: ${esc(plate)}</div>`;
   h+=`<div class="tip-muted">${esc(c)}</div>`;
@@ -352,7 +352,7 @@ function ukCard(el){
   let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
   if(turn) h+=`<div>same-day turnaround</div>`;
-  if(el.dataset.lm==="1") h+=`<div class="tip-lm">${esc(LAST_MIN_TEXT)}</div>`;
+  if(el.dataset.lm==="1") h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   return h;
 }
 function hideTip(){
