@@ -39,7 +39,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar.hit .bar-inner{box-shadow:0 0 0 2px #1F78B4,0 0 8px rgba(31,120,180,.55)}
 #shell{display:flex;flex:0 1 auto;min-height:120px;border:1px solid var(--b-default);border-radius:8px;overflow-x:hidden;overflow-y:auto;background:var(--bg);user-select:none;-webkit-user-select:none;align-items:flex-start}
 #names{width:var(--name-w);flex-shrink:0;border-right:1px solid var(--b-default);background:var(--bg);z-index:2}
-.nhead{height:calc(var(--head-h) + 14px);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
+.nhead{height:calc(var(--head-h) + 20px);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
 .nrow{height:var(--row-h);display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid var(--b-subtle);background:var(--row-even)}
 .nrow.odd{background:var(--row-odd)}
 .nrow span{font-size:13px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -145,13 +145,13 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar svg.tr{flex-shrink:0}
 #tip .tip-car{font-weight:700;display:flex;align-items:center;gap:5px}
 .uk-row .carf{flex-shrink:0}
-.pdays{height:14px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
+.pdays{height:20px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
 .pday{width:var(--day-w);flex-shrink:0;border-right:1px solid var(--b-subtle);display:flex;align-items:center;justify-content:center;gap:2px;cursor:pointer}
 .pday > *{pointer-events:none}
-.pday .pp{width:10px;height:10px;border-radius:2px;color:#FFFFFF;font:800 8px/10px system-ui,sans-serif;text-align:center;background:#64748B}
+.pday .pp{width:13px;height:13px;border-radius:3px;color:#FFFFFF;font:800 9.5px/13px system-ui,sans-serif;text-align:center;background:#64748B}
 .pday.amber .pp{background:#B45309}
 .pday.red .pp{background:#BE123C}
-.pday .pn{font-size:9px;font-weight:600;color:var(--t2);line-height:10px}
+.pday .pn{font-size:11px;font-weight:600;color:var(--t2);line-height:13px}
 
 @keyframes offlineFlash{0%,100%{opacity:1}50%{opacity:.22}}
 #meta .online{color:#1B7A3D;font-weight:600}
@@ -284,7 +284,7 @@ g+=`</div><div class="pdays">`;
 const PARK_DAY=Array.from({length:dayCount},()=>({n:0,cars:[]}));
 D.R.forEach(([code,listing,,s,e])=>{const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pl=D.P&&D.P[code];for(let i=a;i<b;i++){PARK_DAY[i].n++;if(pl)PARK_DAY[i].cars.push({listing,plate:pl});}});
 // only known cars (plate in D.P) count toward the 12 spots; other stays are "car unknown"
-PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/12*100);g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" title="Parking ${k}/12 known cars (${pct}%)${u?` · ${u} car unknown`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
+PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/12*100);const ymd=`${days[i].d.getFullYear()}-${String(days[i].d.getMonth()+1).padStart(2,"0")}-${String(days[i].d.getDate()).padStart(2,"0")}`;g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" data-ymd="${ymd}" role="button" aria-label="Parking ${ymd} night: ${k} of 12" title="Parking ${k}/12 known cars (${pct}%)${u?` · ${u} car unknown`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
 g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
 L.forEach(([n],ri)=>{g+=`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:${gridW}px"></div>`});
 g+=`</div><div class="cols">`;
@@ -487,7 +487,8 @@ function pdayCard(el){
 }
 grid.addEventListener("mouseover",e=>{if(!fineHover())return;const b=e.target.closest(".pday");if(b)showTip(b,pdayCard(b),false)});
 grid.addEventListener("mouseout",e=>{if(!fineHover()||tipPinned)return;const b=e.target.closest(".pday");if(!b)return;const to=e.relatedTarget;if(to&&(b.contains(to)||tip.contains(to)))return;hideTip()});
-grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".pday");if(!b)return;tipTapAt=Date.now();showTip(b,pdayCard(b),true)});
+// tap a day's P → parking panel for that night (same click path + drag guard as the stay bars)
+grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".pday");if(!b)return;hideTip();if(window.openParkingFor)window.openParkingFor(b.dataset.ymd)});
 const hideOnScroll=()=>{if(Date.now()-tipTapAt<450)return;hideTip()};
 sc.addEventListener("scroll",hideOnScroll,{passive:true});
 sc.addEventListener("pointermove",e=>{if(drag&&drag.m) hideTip()});
@@ -601,9 +602,10 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
 (function(){
   const SPOTS=12, TAN=Math.tan(20*Math.PI/180);
   const btn=document.getElementById("park-btn"), panel=document.getElementById("park-panel"), cnt=document.getElementById("park-count");
-  let mode="tonight";
-  function stays(){
-    const p=pragueParts(), today=p.ymd, now=[], tonight=[];
+  let mode="tonight", day=null; // day = YYYY-MM-DD opened from a P cell; null = tonight/now
+  const dayLabel=ymd=>new Date(`${ymd}T12:00:00Z`).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).replace(",","");
+  function stays(night){
+    const p=pragueParts(), today=night||p.ymd, now=[], tonight=[];
     D.R.forEach(([code,listing,guest,s,e])=>{
       const st={code,listing,guest,plate:(D.P&&D.P[code])||""};
       if(s<=today&&e>today) tonight.push(st);
@@ -632,20 +634,21 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   }
   function render(){
     // only stays with a known plate (D.P) are cars; the rest are "car unknown" and never counted
-    const info=stays(), all=mode==="tonight"?info.tonight:info.now, list=all.filter(x=>x.plate), n=list.length, unknown=all.length-n, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
+    const info=stays(), all=day?stays(day).tonight:mode==="tonight"?info.tonight:info.now, list=all.filter(x=>x.plate), n=list.length, unknown=all.length-n, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
     const tonightCars=info.tonight.filter(x=>x.plate).length;
     cnt.textContent=`Tonight ${Math.round(tonightCars/SPOTS*100)}%`; cnt.dataset.parkCapsule=String(tonightCars);
     const col=pct>=100?"#BE123C":pct>=50?"#B45309":"#1D4ED8";
-    panel.innerHTML=`<div class="ph" style="align-items:center"><span>Parking</span><span class="ptabs" role="tablist"><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
+    panel.innerHTML=`<div class="ph" style="align-items:center"><span class="ptitle" data-park-title="${day||""}">${day?`Parking · ${dayLabel(day)} · ${n}/${SPOTS} · ${pct}%`:"Parking"}</span><span class="ptabs" role="tablist"${day?' style="display:none"':""}><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
       `<div class="psum" data-park-n="${n}" data-park-unknown="${unknown}"><b>${n}/${SPOTS} · ${pct}%</b><span>· known car${n===1?"":"s"}</span>${over>0?`<span class="povr" data-park-over="${over}">+${over} over</span>`:""}</div>`+
       `<div class="pbar"><div style="width:${Math.min(100,pct)}%;background:${col}"></div></div>${svg(list)}`+
-      `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} other stay${unknown===1?"":"s"} ${mode==="tonight"?"tonight":"in-house now"} · car unknown</div>`+
-      `<div class="pnote" style="color:#6B7280">${mode==="tonight"?`Sleeping here tonight (${info.today})`:`In-house now (${info.hhmm} Prague)`} · only stays with a known plate count</div>`+
+      `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} other stay${unknown===1?"":"s"} ${day?"that night":mode==="tonight"?"tonight":"in-house now"} · car unknown</div>`+
+      `<div class="pnote" style="color:#6B7280">${day?`Sleeping here the night of ${day} (after that day's checkouts and arrivals)`:mode==="tonight"?`Sleeping here tonight (${info.today})`:`In-house now (${info.hhmm} Prague)`} · only stays with a known plate count</div>`+
       `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">No known cars.</div>`}</div>`;
   }
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");if(on)render();}
-  btn.addEventListener("click",()=>setOpen(!panel.classList.contains("open")));
-  cnt.addEventListener("click",()=>{mode="tonight";setOpen(true)});
+  btn.addEventListener("click",()=>{day=null;setOpen(!panel.classList.contains("open"))});
+  cnt.addEventListener("click",()=>{day=null;mode="tonight";setOpen(true)});
+  window.openParkingFor=ymd=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(ymd||""))return;day=ymd;setOpen(true)};
   panel.addEventListener("click",e=>{const t=e.target.closest("[data-park-tab]");if(!t)return;mode=t.dataset.parkTab;render()});
   document.addEventListener("pointerdown",e=>{if(!panel.classList.contains("open"))return;if(panel.contains(e.target)||btn.contains(e.target)||cnt.contains(e.target))return;setOpen(false)});
   render(); setInterval(render,60000);
@@ -683,8 +686,8 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     scroller.scrollLeft=Math.max(0,left-Math.max(24,(scroller.clientWidth-w)/2));
     if(shell){
       const sh=shell.getBoundingClientRect(), br=bar.getBoundingClientRect();
-      if(br.top<sh.top+HEAD_H+14||br.bottom>sh.bottom){
-        shell.scrollTop+=br.top-sh.top-HEAD_H-14-8;
+      if(br.top<sh.top+HEAD_H+20||br.bottom>sh.bottom){
+        shell.scrollTop+=br.top-sh.top-HEAD_H-20-8;
       }
     }
     clearTimeout(hitTimer);
