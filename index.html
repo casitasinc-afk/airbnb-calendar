@@ -297,6 +297,10 @@ function alertMini(code){const a=alertRaw(code);if(!a)return "";return `<span cl
 function alertCard(code){const a=alertRaw(code);if(!a)return "";const r=a.level==="red"?" red":"";const rest=[a.note,a.since?`since ${fmtSince(a.since)}`:""].filter(Boolean).join(" · ");
   return `<div class="tip-alert${r}" data-tip-alert="${a.level}">⚠ ${a.level==="red"?"Extremely urgent":"Urgent"}: ${esc(a.type)}${alertIsOff(a)?" (warning off here)":""}</div>${rest?`<div class="tip-alert-note${r}" data-tip-alert="${a.level}">${esc(rest)}</div>`:""}`}
 const etaShort=v=>String(v).replace(/:00/g,"");
+// Sort key for PŘÍJEZDY: minutes of the ETA's start ("23:00–01:00" → 23:00, "~19:00", "15–16", "20:00+", "18:30–19:00").
+// A start after midnight counts as late (after 23:00) only when its range crosses midnight; no ETA → -1 (first).
+function etaKey(v){const m=String(v||"").match(/(\d{1,2})(?::(\d{2}))?(?:\s*[–—-]\s*(\d{1,2})(?::(\d{2}))?)?/);if(!m)return -1;
+  let st=+m[1]*60+(+m[2]||0);if(m[3]!=null){const en=+m[3]*60+(+m[4]||0);if(en<st&&st<360)st+=1440}return st}
 const CLOCK=(c,sz)=>`<svg class="clk" width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><circle cx="8" cy="8" r="6.3" fill="none" stroke="${c}" stroke-width="1.7"/><path d="M8 4.4V8l2.6 1.6" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
@@ -775,6 +779,7 @@ let UK_TODAY_N=null;
     });
     outs.sort((a,b)=>a.listing.localeCompare(b.listing));
     inns.sort((a,b)=>a.listing.localeCompare(b.listing));
+    inns.sort((a,b)=>etaKey(a.eta)-etaKey(b.eta)||0); // no ETA first, then by ETA start, earliest first (stable, keeps A–Z)
     const turnSet=new Set();
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
