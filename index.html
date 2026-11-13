@@ -187,6 +187,9 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .eta{display:inline-flex;align-items:center;gap:1px;flex-shrink:0;margin-left:2px;font-size:10px;font-weight:700;color:#0F766E;font-variant-numeric:tabular-nums;white-space:nowrap}
 .uk-ln .eta{font-size:9.5px;margin-left:2px}
 .uk-row.has-eta{flex-wrap:wrap;row-gap:0}
+.volno{display:inline-flex;align-items:center;background:#16A34A;color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.3px;line-height:1;border-radius:4px;padding:2px 4px;margin-left:2px;white-space:nowrap;flex-shrink:0}
+.uk-ln .volno{font-size:8.5px;padding:1px 3px}
+.uk-row.left .nm{color:#15803D}
 .uk-row.has-eta .nm{flex:0 1 auto}
 .uk-ln .eta svg{margin-right:1px}
 #tip .tip-eta{font-weight:700;display:flex;align-items:center;gap:5px;color:#0F766E}
@@ -281,6 +284,8 @@ function transportOf(code){const t=D.T&&D.T[code];if(t&&TR_LABEL[t[0]])return {m
 const CAR=`<svg class="car" width="12" height="7" viewBox="1.5 5.3 13 7.6" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
 // Stated arrival time (D.E from eta.json: code → "19:00" / "~19:00" / "23:00–01:00" / "20:00+"). Unknown → nothing shown.
 const etaOf=code=>(D.E&&D.E[code])||"";
+// DATA.X (departures.json): code → [departure ETA, left 0/1, left_at "HH:MM"]
+const depOf=code=>(D.X&&D.X[code])||null;
 // Urgent-attention alerts (D.A = code → [level, type, since, note], from alerts.json via merge_alert.py).
 // Long press (≈600 ms) or double-click on the badge turns it off on this device (localStorage "alertsOff", keyed
 // code|type|since → a NEW alert on the same stay flashes again). "Warning off · Undo" toast for 4 s.
@@ -642,6 +647,7 @@ function stayCard(code){
   platesOf(c).forEach((pl,j)=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(pl)}${j===0&&tr&&tr.m==="car"&&tr.note?` · ${esc(tr.note)}`:""}</div>`});
   if(tr&&!(tr.m==="car"&&plate)) h+=`<div class="tip-tr">${tr.m==="car"?CARF("#111827",15):TRI(tr.m,"#111827",15)}${esc(TR_LABEL[tr.m])}${tr.note?` · ${esc(tr.note)}`:""}</div>`;
   if(etaOf(c)) h+=`<div class="tip-eta" data-tip-eta="${esc(etaOf(c))}">${CLOCK("#0F766E",15)}ETA ${esc(etaOf(c))}</div>`;
+  {const x=depOf(c);if(x&&x[1])h+=`<div class="tip-eta" data-tip-dep="left"><span class="volno">VOLNO</span> guest wrote they left${x[2]?` · ${esc(x[2])}`:""}</div>`;else if(x&&x[0])h+=`<div class="tip-eta" data-tip-dep="${esc(x[0])}">${CLOCK("#0F766E",15)}Departure ${esc(x[0])}</div>`;}
   h+=`<div class="tip-muted">${esc(c)}</div>`;
   return h;
 }
@@ -763,7 +769,7 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta?" has-eta":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?" · ETA "+it.eta:"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${alertBadge(it.code)}</div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · departs ":" · ETA ")+it.eta:"")+(it.left?" · VOLNO – guest wrote they left"+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">VOLNO${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${alertBadge(it.code)}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -774,17 +780,18 @@ let UK_TODAY_N=null;
     const outs=[], inns=[];
     D.R.forEach(r=>{
       const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||"",eta:r[3]===iso?etaOf(r[0]):"",code:r[0]};
-      if(r[4]===iso) outs.push(item);
+      if(r[4]===iso){const x=depOf(r[0]);outs.push({...item,lm:false,out:true,eta:(x&&x[0])||"",left:!!(x&&x[1]),leftAt:(x&&x[2])||""});}
       if(r[3]===iso) inns.push(item);
     });
     outs.sort((a,b)=>a.listing.localeCompare(b.listing));
+    outs.sort((a,b)=>(a.left?1e5:etaKey(a.eta))-(b.left?1e5:etaKey(b.eta))); // like příjezdy: unknown first, then by departure ETA; VOLNO last
     inns.sort((a,b)=>a.listing.localeCompare(b.listing));
     inns.sort((a,b)=>etaKey(a.eta)-etaKey(b.eta)||0); // no ETA first, then by ETA start, earliest first (stable, keeps A–Z)
     const turnSet=new Set();
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?" · ETA "+it.eta:"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${alertMini(it.code)}${esc(it.listing)}${k==="in"&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
+    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?(k==="out"?" · departs ":" · ETA ")+it.eta:"")+(it.left?" · VOLNO":"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${alertMini(it.code)}${esc(it.listing)}${it.left?`<span class="volno">VOLNO</span>`:""}${!it.left&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
     const [wd,dm]=label.split(" ");
     const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
