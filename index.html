@@ -93,7 +93,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .tzone-pre{height:100%;background:rgba(255,56,92,.05)}
 .tzone-clean{height:100%;background:rgba(180,160,40,.10)}
 .tzone-in{height:100%;background:rgba(31,120,180,.07)}
-.nowline{position:absolute;top:0;width:2px;height:100%;background:repeating-linear-gradient(to bottom,rgba(255,56,92,.7) 0 2px,transparent 2px 5px) center top/1px 100% no-repeat;pointer-events:none;z-index:6} /* weak thin dotted 1px red (70%), centred in a 2px box (positions unchanged) */
+.nowline{position:absolute;top:0;width:2px;height:100%;background:repeating-linear-gradient(to bottom,rgba(255,56,92,.7) 0 1.5px,transparent 1.5px 3px);pointer-events:none;z-index:6} /* dotted 2px red (70%), dense 1.5px dots / 1.5px gaps (positions unchanged) */
 .nowline.head{top:14px;height:calc(var(--head-h) - 14px);box-shadow:none;z-index:5}
 
 #uklidy{flex-shrink:0;display:flex;gap:4px;padding-top:3px;border-top:1px solid var(--b-subtle);max-height:34dvh;min-height:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x}
