@@ -837,7 +837,8 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno")+" – "+T("left")+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · "+T("turnaround"):"")+(it.lm?" · "+T("last_min_short"):""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">${T("volno")}${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${alertBadge(it.code)}</div>`;
+  // alerts flash only in TODAY's column; other days get a small static ⚠ (t136u)
+  const row=(it,turn,tod)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${tod&&alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno")+" – "+T("left")+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · "+T("turnaround"):"")+(it.lm?" · "+T("last_min_short"):""))}">${it.kind===1?LOD:DUM}${tod?"":alertMini(it.code)}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">${T("volno")}${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${tod?alertBadge(it.code):""}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -865,9 +866,9 @@ let UK_TODAY_N=null;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
     html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}${compact}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
     html+=`<div class="uk-sec out"><div class="uk-sub">${T("out")}</div>`;
-    html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
+    html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing),offToday===0)).join("") : `<div class="uk-empty">—</div>`;
     html+=`</div><div class="uk-rule"></div><div class="uk-sec in"><div class="uk-sub">${T("in")}</div>`;
-    html+= inns.length? inns.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
+    html+= inns.length? inns.map(it=>row(it,turnSet.has(it.listing),offToday===0)).join("") : `<div class="uk-empty">—</div>`;
     html+=`</div></div></div>`;
   }
   const el=document.getElementById("uklidy");
