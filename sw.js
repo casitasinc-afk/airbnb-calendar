@@ -1,5 +1,5 @@
 // Built by build_pwa.py — VERSION changes on every rebuild so phones pick up new data.
-const VERSION = "ad25aa847b02";
+const VERSION = "e80c8619ab0c";
 const CACHE = "airbnb-cal-" + VERSION;
 const SHELL = ["./", "index.html", "data.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png"];
 
