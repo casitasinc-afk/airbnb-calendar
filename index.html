@@ -27,6 +27,9 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #zoom-reset[hidden]{display:none}
 #today-btn{flex-shrink:0;height:22px;padding:0 11px;border:0;border-radius:999px;background:rgba(118,118,128,.12);color:#007AFF;font:600 12px/22px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;transition:background .15s}
 #today-btn:active{background:rgba(118,118,128,.24)}
+#lang-sw{display:inline-flex;gap:1px;flex-shrink:0;align-items:center}
+#lang-sw button{width:24px;height:22px;padding:0;border:1.5px solid transparent;border-radius:6px;background:transparent;font:14px/1 "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;opacity:.55;-webkit-tap-highlight-color:transparent}
+#lang-sw button[aria-pressed="true"]{border-color:#007AFF;background:#EAF3FF;opacity:1;box-shadow:0 0 0 1px rgba(0,122,255,.25)}
 .months{touch-action:none;cursor:ew-resize}
 #names .nrow span{font-size:calc(13px * var(--nzf,1))}
 #shell{touch-action:pan-x pan-y}
@@ -140,7 +143,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #alert-toast button{border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#93C5FD;font:700 13px/24px system-ui,sans-serif;padding:0 10px;cursor:pointer}
 .uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .uk-empty{font-size:11px;color:var(--t3)}
-/* Parking button + slide-out panel (12 angled spots) */
+/* Parking button + slide-out panel (14 angled spots) */
 #park-btn{position:fixed;left:6px;bottom:max(4px,env(safe-area-inset-bottom));width:34px;height:34px;border-radius:999px;border:1px solid #D1D5DB;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;z-index:9000}
 #park-btn span{width:22px;height:22px;border-radius:4px;background:#1D4ED8;color:#fff;font-weight:800;font-size:16px;line-height:22px;text-align:center}
 #park-count{position:fixed;left:46px;bottom:calc(max(4px,env(safe-area-inset-bottom)) + 6px);height:22px;line-height:22px;padding:0 10px;border-radius:999px;background:#F3F4F6;border:1px solid #D1D5DB;color:#111827;font-size:12px;font-weight:600;white-space:nowrap;z-index:9000;pointer-events:auto;cursor:pointer;font-family:inherit;margin:0}
@@ -167,6 +170,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #park-panel .psum{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:4px}
 #park-panel .psum b{font-size:13px}
 #park-panel .psum span{font-size:12px;color:#374151}
+#park-panel .pown{font-size:11px;font-weight:700;color:#92400E;background:#FEF3C7;border:1px solid #F59E0B;border-radius:999px;padding:0 7px;line-height:15px;white-space:nowrap}
 #park-panel .povr{font-size:11px;font-weight:700;color:#fff;background:#BE123C;border-radius:999px;padding:0 7px;line-height:16px}
 #park-panel .pstays{margin-top:4px;font-size:12px;line-height:1.45}
 #park-panel .pstay{display:flex;gap:6px;align-items:center;color:#111827}
@@ -228,6 +232,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #sheet-dock button{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 12px 0 10px;border-radius:12px 12px 6px 6px;border:1px solid #D1D5DB;border-bottom-width:3px;background:#fff;color:#111827;font:600 12px/1 system-ui,-apple-system,sans-serif;box-shadow:0 -1px 6px rgba(0,0,0,.14);cursor:pointer;-webkit-tap-highlight-color:transparent}
 #sheet-dock button svg{flex-shrink:0}
 #sheet-dock button .n{font-weight:500;color:#4B5563}
+@media (max-width:420px){#sheet-dock{gap:4px}#sheet-dock button{padding:0 9px 0 8px;gap:4px}}
 #uk-wrap.sized #uklidy{flex:1 1 auto;max-height:none}
 #uk-wrap:not(.tucked) .uk-col{zoom:var(--ukz,1)}
 #uk-zoom-reset{margin-left:auto;flex-shrink:0;height:18px;padding:0 7px;border:0;border-radius:999px;background:var(--accent-subtle);color:var(--accent);font:600 10px/18px system-ui,sans-serif;letter-spacing:0;text-transform:none;cursor:pointer;touch-action:manipulation}
@@ -258,7 +263,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
     <div id="names"></div>
     <div id="scroller"><div id="grid"></div></div>
   </div>
-  <div id="uk-wrap" data-uk-wrap="open"><div id="uk-handle" data-uk-handle data-sheet-handle="uk" role="button" tabindex="0" aria-expanded="true" aria-label="Tuck cleaning panel to two lines"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Úklidy</span><span class="uk-sum"></span><button type="button" id="uk-zoom-reset" hidden title="Reset cleaning zoom to 100% (or double-tap an empty spot)" aria-label="Reset cleaning zoom"></button><span class="sheet-grab" aria-hidden="true"><i></i></span></div><div id="uklidy"></div></div>
+  <div id="uk-wrap" data-uk-wrap="open"><div id="uk-handle" data-uk-handle data-sheet-handle="uk" role="button" tabindex="0" aria-expanded="true" aria-label="Tuck cleaning panel to two lines"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="uk-title">Úklidy</span><span class="uk-sum"></span><button type="button" id="uk-zoom-reset" hidden title="Reset cleaning zoom to 100% (or double-tap an empty spot)" aria-label="Reset cleaning zoom"></button><span class="sheet-grab" aria-hidden="true"><i></i></span></div><div id="uklidy"></div></div>
   <div id="park-panel" role="dialog" aria-label="Parking" aria-hidden="true"><div id="park-handle" data-sheet-handle="park" role="button" tabindex="0" aria-label="Resize parking panel (drag) or tuck/expand (tap)"><div class="sheet-grab" aria-hidden="true"><i></i></div><div id="park-tuck"></div></div><div id="park-body"></div></div>
 </div>
 <div id="tip"></div>
@@ -266,14 +271,30 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 <script src="data.js"></script>
 <script>
 (function(){
+const I18N={"lang_name":{"cz":"Čeština","ukr":"Українська","gb":"English (UK)"},"lang_pick":{"cz":"Jazyk","ukr":"Мова","gb":"Language"},"updated":{"cz":"Aktualizace","ukr":"Оновлено","gb":"Updated"},"online":{"cz":"ONLINE","ukr":"ОНЛАЙН","gb":"ONLINE"},"offline":{"cz":"OFFLINE","ukr":"ОФЛАЙН","gb":"OFFLINE"},"sync":{"cz":"sync","ukr":"синхр.","gb":"sync"},"meta_live":{"cz":"živý kalendář hostitele Airbnb","ukr":"календар господаря Airbnb наживо","gb":"live Airbnb host calendar"},"meta_sync":{"cz":"synchronizace z e-mailů/exportu, ne živé Airbnb API","ukr":"синхронізація з листів/експорту, не живий API Airbnb","gb":"email/export sync, not the live Airbnb API"},"meta_off":{"cz":"bez přihlášení k Airbnb","ukr":"немає сесії Airbnb","gb":"no Airbnb host session"},"today_btn":{"cz":"Dnes","ukr":"Сьогодні","gb":"Today"},"today_title":{"cz":"Posunout na dnešek (i úklidy)","ukr":"Перейти до сьогодні (і прибирання)","gb":"Scroll to today (cleaning panel too)"},"zoom_title":{"cz":"Zpět na 100 % (nebo dvojitě klepněte do prázdné mřížky)","ukr":"Скинути масштаб до 100% (або двічі торкніться порожньої сітки)","gb":"Reset zoom to 100% (or double-tap the empty grid)"},"zoom_aria":{"cz":"Obnovit přiblížení","ukr":"Скинути масштаб","gb":"Reset zoom"},"search_aria":{"cz":"Hledat pobyty","ukr":"Пошук бронювань","gb":"Search stays"},"search_title":{"cz":"Hledat podle SPZ nebo hosta","ukr":"Пошук за номером авто або гостем","gb":"Search by number plate or guest"},"search_ph":{"cz":"SPZ, host nebo poznámka","ukr":"Номер, гість або нотатка","gb":"Plate, guest or note"},"search_empty":{"cz":"Napište SPZ nebo jméno hosta","ukr":"Введіть номер авто або ім’я гостя","gb":"Type a number plate or guest name"},"search_none":{"cz":"Nic nenalezeno","ukr":"Нічого не знайдено","gb":"No matches"},"car":{"cz":"Auto","ukr":"Авто","gb":"Car"},"legend_title":{"cz":"Barvy pobytů: hodnocení hosta na Airbnb (5★ zelená → ≤4,6 červená). Čárkovaně = bez hodnocení, posouzeno ze zpráv. Šedá = bez údajů.","ukr":"Кольори бронювань: рейтинг гостя на Airbnb (5★ зелений → ≤4,6 червоний). Пунктир = без рейтингу, оцінено за повідомленнями. Сірий = немає даних.","gb":"Stay colours: Airbnb guest rating (5★ green → ≤4.6 red). Dashed = no rating, judged from guest messages. Grey = no data."},"legend_msgs":{"cz":"zprávy","ukr":"листи","gb":"msgs"},"listing":{"cz":"Ubytování","ukr":"Помешкання","gb":"Listing"},"houseboat":{"cz":"hausbót","ukr":"плавучий будинок","gb":"houseboat"},"house":{"cz":"dům","ukr":"будинок","gb":"house"},"turnaround":{"cz":"odjezd i příjezd týž den","ukr":"виїзд і заїзд в один день","gb":"same-day turnaround"},"wd":{"cz":["Ne","Po","Út","St","Čt","Pá","So"],"ukr":["Нд","Пн","Вт","Ср","Чт","Пт","Сб"],"gb":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]},"wd_uk":{"cz":["ne","po","út","st","čt","pá","so"],"ukr":["нд","пн","вт","ср","чт","пт","сб"],"gb":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]},"months":{"cz":["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"],"ukr":["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"],"gb":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]},"locale":{"cz":"cs-CZ","ukr":"uk-UA","gb":"en-GB"},"pday_aria":{"cz":"Parkování v noci {0}: {1} z {2}","ukr":"Паркування в ніч на {0}: {1} з {2}","gb":"Parking on the night of {0}: {1} of {2}"},"pday_title":{"cz":"Parkování {0}/{2} známých aut ({1} %)","ukr":"Паркування {0}/{2} відомих авто ({1}%)","gb":"Parking {0}/{2} known cars ({1}%)"},"car_unknown_n":{"cz":"{0} s neznámým autem","ukr":"{0} з невідомим авто","gb":"{0} car unknown"},"zone_pre_t":{"cz":"Před odjezdy (do 10:00)","ukr":"До виїзду (до 10:00)","gb":"Before check-out (until 10:00)"},"zone_clean_t":{"cz":"Čas na úklid (10:00–15:00)","ukr":"Час на прибирання (10:00–15:00)","gb":"Cleaning gap (10:00–15:00)"},"zone_in_t":{"cz":"Příjezdy (od 15:00)","ukr":"Заїзд (з 15:00)","gb":"Check-in (from 15:00)"},"zone_pre":{"cz":"před odjezdy","ukr":"до виїзду","gb":"before check-out"},"zone_clean":{"cz":"úklid","ukr":"прибирання","gb":"cleaning"},"zone_in":{"cz":"příjezdy","ukr":"заїзд","gb":"check-in"},"now_title":{"cz":"Teď · {0} · {1} Praha","ukr":"Зараз · {0} · {1} Прага","gb":"Now · {0} · {1} Prague"},"nights":{"cz":["noc","noci","nocí"],"ukr":["ніч","ночі","ночей"],"gb":["night","nights"]},"guests":{"cz":["host","hosté","hostů"],"ukr":["гість","гості","гостей"],"gb":["guest","guests"]},"reviews":{"cz":["hodnocení","hodnocení","hodnocení"],"ukr":["відгук","відгуки","відгуків"],"gb":["review","reviews"]},"tier_r5":{"cz":"5,0★ (vždy zelená)","ukr":"5,0★ (завжди зелений)","gb":"5.0★ (always green)"},"tier_cf":{"cz":"bez hodnocení · zprávy v pořádku","ukr":"без рейтингу · повідомлення в нормі","gb":"no rating · messages look fine"},"tier_cu":{"cz":"bez hodnocení · zprávy nejisté","ukr":"без рейтингу · повідомлення під питанням","gb":"no rating · messages unsure"},"tier_cp":{"cz":"bez hodnocení · zprávy problematické","ukr":"без рейтингу · повідомлення проблемні","gb":"no rating · messages look problematic"},"tier_n":{"cz":"bez hodnocení / bez zpráv","ukr":"без рейтингу / без повідомлень","gb":"no rating / no messages"},"last_min":{"cz":"Rezervace na poslední chvíli (< 24 h před příjezdem)","ukr":"Бронювання в останню хвилину (< 24 год до заїзду)","gb":"Last-minute booking (< 24 h before check-in)"},"last_min_short":{"cz":"rezervace na poslední chvíli","ukr":"бронювання в останню хвилину","gb":"last-minute booking"},"tr_plane":{"cz":"Letadlo","ukr":"Літак","gb":"Plane"},"tr_train":{"cz":"Vlak","ukr":"Потяг","gb":"Train"},"tr_bus":{"cz":"Autobus","ukr":"Автобус","gb":"Coach"},"tr_car":{"cz":"Auto","ukr":"Авто","gb":"Car"},"tr_taxi":{"cz":"Taxi","ukr":"Таксі","gb":"Taxi"},"eta":{"cz":"Příjezd","ukr":"Приїзд","gb":"ETA"},"departure":{"cz":"Odjezd","ukr":"Виїзд","gb":"Departure"},"departs":{"cz":"odjezd","ukr":"виїзд","gb":"departs"},"left":{"cz":"host napsal, že odjel","ukr":"гість написав, що виїхав","gb":"guest wrote they've left"},"volno":{"cz":"VOLNO","ukr":"ВІЛЬНО","gb":"FREE"},"urgent":{"cz":"Urgentní","ukr":"Терміново","gb":"Urgent"},"xurgent":{"cz":"Velmi urgentní","ukr":"Дуже терміново","gb":"Extremely urgent"},"since":{"cz":"od {0}","ukr":"з {0}","gb":"since {0}"},"warn_off_here":{"cz":"(varování zde vypnuto)","ukr":"(попередження тут вимкнено)","gb":"(warning off here)"},"alert_hint_tail":{"cz":"dlouhým stiskem nebo dvojklikem varování vypnete","ukr":"довге натискання або подвійний клік вимикає попередження","gb":"long-press or double-click to turn the warning off"},"toast_off":{"cz":"Varování vypnuto ·","ukr":"Попередження вимкнено ·","gb":"Warning off ·"},"undo":{"cz":"Zpět","ukr":"Скасувати","gb":"Undo"},"chip_aria":{"cz":"Urgentní upozornění: {0}, ukázat první","ukr":"Термінові попередження: {0}, показати перше","gb":"Urgent alerts: {0}, show the first"},"alert":{"cz":"Upozornění","ukr":"Попередження","gb":"Alert"},"uk_title":{"cz":"Úklidy","ukr":"Прибирання","gb":"Cleaning"},"out":{"cz":"Odjezdy","ukr":"Виїзди","gb":"Departures"},"in":{"cz":"Příjezdy","ukr":"Приїзди","gb":"Arrivals"},"uk_sum":{"cz":"· dnes odj {0} · příj {1}","ukr":"· сьогодні виїзд {0} · приїзд {1}","gb":"· today out {0} · in {1}"},"uk_expand":{"cz":"Rozbalit panel úklidů (klepnutím) nebo táhnout nahoru","ukr":"Розгорнути панель прибирання (торкніться) або потягніть угору","gb":"Expand the cleaning panel (tap) or drag up"},"uk_tuck":{"cz":"Sbalit panel úklidů (klepnutím) nebo tažením změnit výšku","ukr":"Згорнути панель прибирання (торкніться) або потягніть, щоб змінити висоту","gb":"Tuck the cleaning panel (tap) or drag to resize"},"uk_zoom_title":{"cz":"Zpět na 100 % (nebo dvojitě klepněte na prázdné místo)","ukr":"Скинути масштаб до 100% (або двічі торкніться порожнього місця)","gb":"Reset cleaning zoom to 100% (or double-tap an empty spot)"},"uk_zoom_aria":{"cz":"Obnovit přiblížení úklidů","ukr":"Скинути масштаб прибирання","gb":"Reset cleaning zoom"},"dock_show":{"cz":"Zobrazit panel {0}","ukr":"Показати панель «{0}»","gb":"Show the {0} panel"},"park":{"cz":"Parkování","ukr":"Паркування","gb":"Parking"},"park_tonight":{"cz":"Dnes v noci","ukr":"Сьогодні вночі","gb":"Tonight"},"park_now":{"cz":"Teď","ukr":"Зараз","gb":"Now"},"capsule":{"cz":"Noc {0} %","ukr":"Ніч {0}%","gb":"Tonight {0}%"},"capsule_aria":{"cz":"Parkování dnes v noci: {0} z {1} známých aut","ukr":"Паркування сьогодні вночі: {0} з {1} відомих авто","gb":"Parking tonight: {0} of {1} known cars"},"known_cars":{"cz":["známé auto","známá auta","známých aut"],"ukr":["відоме авто","відомі авто","відомих авто"],"gb":["known car","known cars"]},"over":{"cz":"+{0} navíc","ukr":"+{0} понад","gb":"+{0} over"},"other_stays":{"cz":["další pobyt","další pobyty","dalších pobytů"],"ukr":["інше бронювання","інші бронювання","інших бронювань"],"gb":["other stay","other stays"]},"that_night":{"cz":"tu noc","ukr":"тієї ночі","gb":"that night"},"tonight_l":{"cz":"dnes v noci","ukr":"сьогодні вночі","gb":"tonight"},"inhouse_now":{"cz":"teď v objektu","ukr":"зараз на місці","gb":"in-house now"},"car_unknown":{"cz":"auto neznámé","ukr":"авто невідоме","gb":"car unknown"},"note_day":{"cz":"Spí tu v noci {0} (po odjezdech a příjezdech toho dne)","ukr":"Ночують тут у ніч на {0} (після виїздів і заїздів цього дня)","gb":"Sleeping here on the night of {0} (after that day's check-outs and arrivals)"},"note_tonight":{"cz":"Spí tu dnes v noci ({0})","ukr":"Ночують тут сьогодні ({0})","gb":"Sleeping here tonight ({0})"},"note_now":{"cz":"Teď v objektu ({0} Praha)","ukr":"Зараз на місці ({0} Прага)","gb":"In-house now ({0} Prague)"},"note_plates":{"cz":"počítají se jen pobyty se známou SPZ","ukr":"враховуються лише бронювання з відомим номером авто","gb":"only stays with a known number plate count"},"no_cars":{"cz":"Žádná známá auta.","ukr":"Немає відомих авто.","gb":"No known cars."},"swipe":{"cz":"‹ přejeďte ›","ukr":"‹ гортайте ›","gb":"‹ swipe ›"},"prev_night":{"cz":"Předchozí noc","ukr":"Попередня ніч","gb":"Previous night"},"next_night":{"cz":"Další noc","ukr":"Наступна ніч","gb":"Next night"},"night_of":{"cz":"noc {0}","ukr":"ніч на {0}","gb":"night of {0}"},"stays_car_unknown":{"cz":["{0} pobyt, auto neznámé","{0} pobyty, auto neznámé","{0} pobytů, auto neznámé"],"ukr":["{0} бронювання, авто невідоме","{0} бронювання, авто невідоме","{0} бронювань, авто невідоме"],"gb":["{0} stay, car unknown","{0} stays, car unknown"]},"spots_aria":{"cz":"{0} z {1} míst obsazeno známými auty","ukr":"{0} з {1} місць зайнято відомими авто","gb":"{0} of {1} parking spaces taken by known cars"},"park_resize":{"cz":"Změnit výšku panelu parkování (tažením) nebo sbalit/rozbalit (klepnutím)","ukr":"Змінити висоту панелі паркування (потягніть) або згорнути/розгорнути (торкніться)","gb":"Resize the parking panel (drag) or tuck/expand (tap)"},"park_expand":{"cz":"Rozbalit panel parkování (klepnutím) nebo táhnout nahoru","ukr":"Розгорнути панель паркування (торкніться) або потягніть угору","gb":"Expand the parking panel (tap) or drag up"},"park_tuck":{"cz":"Sbalit panel parkování (klepnutím) nebo tažením změnit výšku","ukr":"Згорнути панель паркування (торкніться) або потягніть, щоб змінити висоту","gb":"Tuck the parking panel (tap) or drag to resize"},"drag_weeks":{"cz":"Táhněte do stran pro posun po týdnech","ukr":"Потягніть убік, щоб гортати тижнями","gb":"Drag sideways to move by weeks"},"now_short":{"cz":"Teď · {0}","ukr":"Зараз · {0}","gb":"Now · {0}"},"park_note":{"cz":"přeparkovat vlastní auta","ukr":"переставити власні авто","gb":"move our own cars"}};
+const I18N_AT={"power outage":{"cz":"Výpadek proudu","ukr":"Немає світла","gb":"Power cut"},"power cut":{"cz":"Výpadek proudu","ukr":"Немає світла","gb":"Power cut"},"no power":{"cz":"Výpadek proudu","ukr":"Немає світла","gb":"Power cut"},"no heating":{"cz":"Nefunguje topení","ukr":"Немає опалення","gb":"No heating"},"no heat":{"cz":"Nefunguje topení","ukr":"Немає опалення","gb":"No heating"},"no hot water":{"cz":"Není teplá voda","ukr":"Немає гарячої води","gb":"No hot water"},"no water":{"cz":"Není voda","ukr":"Немає води","gb":"No water"},"water leak":{"cz":"Únik vody","ukr":"Протікає вода","gb":"Water leak"},"leak":{"cz":"Únik vody","ukr":"Протікає вода","gb":"Leak"},"flooding":{"cz":"Zaplavení","ukr":"Затоплення","gb":"Flooding"},"boat leak":{"cz":"Loď nabírá vodu","ukr":"Човен набирає воду","gb":"Boat taking on water"},"sinking":{"cz":"Loď nabírá vodu","ukr":"Човен набирає воду","gb":"Boat taking on water"},"gas leak":{"cz":"Únik plynu","ukr":"Витік газу","gb":"Gas leak"},"fire":{"cz":"Požár","ukr":"Пожежа","gb":"Fire"},"smoke alarm":{"cz":"Kouřový hlásič","ukr":"Датчик диму","gb":"Smoke alarm"},"medical emergency":{"cz":"Zdravotní pohotovost","ukr":"Невідкладна медична допомога","gb":"Medical emergency"},"locked out":{"cz":"Host se nedostane dovnitř","ukr":"Гість не може увійти","gb":"Locked out"},"lockout":{"cz":"Host se nedostane dovnitř","ukr":"Гість не може увійти","gb":"Locked out"},"broken lock":{"cz":"Rozbitý zámek","ukr":"Зламаний замок","gb":"Broken lock"},"no wifi":{"cz":"Nefunguje Wi-Fi","ukr":"Не працює Wi-Fi","gb":"No Wi-Fi"},"wifi down":{"cz":"Nefunguje Wi-Fi","ukr":"Не працює Wi-Fi","gb":"No Wi-Fi"},"noise complaint":{"cz":"Stížnost na hluk","ukr":"Скарга на шум","gb":"Noise complaint"},"toilet blocked":{"cz":"Ucpaný záchod","ukr":"Засмічений унітаз","gb":"Blocked toilet"},"blocked toilet":{"cz":"Ucpaný záchod","ukr":"Засмічений унітаз","gb":"Blocked toilet"},"alert":{"cz":"Upozornění","ukr":"Попередження","gb":"Alert"}};
+// Language (device-local, localStorage "cal.lang": cz | ukr | gb; default cz). All visible UI text goes through T()/TP().
+const LANG_KEY="cal.lang", LANGS=[["cz","🇨🇿","CZ"],["ukr","🇺🇦","UA"],["gb","🇬🇧","GB"]];
+const LANG=(()=>{try{const v=localStorage.getItem(LANG_KEY);return v==="ukr"||v==="gb"?v:"cz"}catch(_){return "cz"}})();
+document.documentElement.lang=LANG==="ukr"?"uk":LANG==="gb"?"en-GB":"cs";
+function T(k,...a){const e=I18N[k];const v=e?(e[LANG]??e.cz):k;return typeof v==="string"?v.replace(/\{(\d)\}/g,(_,i)=>a[i]??""):v}
+// plural form index: cz 1 / 2–4 / 5+; ukr 1,21… / 2–4,22… / other; gb 1 / other
+function plIdx(n){n=Math.abs(n);if(LANG==="gb")return n===1?0:1;if(LANG==="cz")return n===1?0:n>=2&&n<=4?1:2;const a=n%10,b=n%100;return a===1&&b!==11?0:a>=2&&a<=4&&(b<12||b>14)?1:2}
+function TP(k,n,...a){const f=I18N[k][LANG]||I18N[k].cz;return String(f[Math.min(plIdx(n),f.length-1)]).replace(/\{(\d)\}/g,(_,i)=>[n,...a][i]??"")}
+const nN=(k,n)=>`${n} ${TP(k,n)}`;
+const alertTypeL=t=>{const e=I18N_AT[String(t||"").trim().toLowerCase()];return e?(e[LANG]||t):t};
+function langSwitch(){return `<span id="lang-sw" role="group" aria-label="${T("lang_pick")}">`+LANGS.map(([k,f,c])=>`<button type="button" data-lang="${k}" aria-pressed="${k===LANG}" title="${c} · ${I18N.lang_name[k]}" aria-label="${c} · ${I18N.lang_name[k]}"><span class="fl" aria-hidden="true">${f}</span></button>`).join("")+`</span>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-lang]");if(!b)return;e.preventDefault();const v=b.dataset.lang;if(v===LANG)return;try{localStorage.setItem(LANG_KEY,v)}catch(_){}location.reload()});
+// Parking capacity: 14 spots; from PARK_OWN (12) known cars on, our own cars need moving (note in the parking panel).
+const PARK_SPOTS=14, PARK_OWN=12;
 const DAY_W=46, ROW_H=22, HEAD_H=36;
 const CHECKOUT_H=10, CHECKIN_H=15; // Europe/Prague turnover clock
-const WEEKDAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const WEEKDAYS=T("wd");
+const MONTHS=T("months");
 const STAY_BAR="#A9B4C0"; // neutral slate = no rating / no messages
 // Guest-quality colors (guest_ratings.json → D.Q[code]=[tier,reviews,note]); r* rating tiers, c* judged from messages (dashed)
 const TIER_BG={r5:"#9ED9A8",r49:"#C8E6B0",r48:"#E4EC9E",r47:"#F6DA8A",r46:"#F6C0B3",r45:"#EFA294",r44:"#E3857A",cf:"#C8E6B0",cu:"#F6DA8A",cp:"#F2A99C",n:STAY_BAR};
-const TIER_LABEL={r5:"5.0★ (always green)",r49:"4.9★",r48:"4.8★",r47:"4.7★",r46:"4.6★",r45:"4.4–4.5★",r44:"<4.4★",cf:"no rating · messages look fine",cu:"no rating · messages unsure",cp:"no rating · messages look problematic",n:"no rating / no messages"};
+const TIER_LABEL={r5:T("tier_r5"),r49:"4.9★",r48:"4.8★",r47:"4.7★",r46:"4.6★",r45:"4.4–4.5★",r44:"<4.4★",cf:T("tier_cf"),cu:T("tier_cu"),cp:T("tier_cp"),n:T("tier_n")};
 const INK="#1E3A4C";
 const B={roof:"#7EBEE0",cabin:"#9FD0EA",hull:"#6BB0D4",win:"#E8F6FC",water:"#5AA4C8"};
 const H={roof:"#1E4A7A",body:"#2E5A8C",win:"#D6E4F2"};
@@ -282,7 +303,7 @@ const DUM=`<svg width="18" height="11" viewBox="0 0 48 30" aria-hidden="true" st
 const HEAD=`<svg width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.2" r="3.1" fill="${INK}"/><path d="M2.2 14.2c.6-3.2 2.8-4.8 5.8-4.8s5.2 1.6 5.8 4.8" fill="${INK}"/></svg>`;
 const CARF=(c,sz)=>`<svg class="carf" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><path d="M5.5 10.5 7.2 6.4A2 2 0 0 1 9.05 5.2h5.9a2 2 0 0 1 1.85 1.2l1.7 4.1A2.5 2.5 0 0 1 20 12.8V17a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-1H7.2v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4.2a2.5 2.5 0 0 1 1.5-2.3Z" fill="${c}"/><path d="M7.6 10.2h8.8l-1.2-3a.8.8 0 0 0-.75-.5h-5.1a.8.8 0 0 0-.75.5Z" fill="#FFFFFF" opacity="0.9"/><circle cx="7.3" cy="13.2" r="1.1" fill="#FFFFFF"/><circle cx="16.7" cy="13.2" r="1.1" fill="#FFFFFF"/></svg>`;
 // Mode of transport (D.T from transport.json: code → [mode, note?]); a known plate (D.P) means car. No data → no icon.
-const TR_LABEL={plane:"Plane",train:"Train",bus:"Bus",car:"Car",taxi:"Taxi"};
+const TR_LABEL={plane:T("tr_plane"),train:T("tr_train"),bus:T("tr_bus"),car:T("tr_car"),taxi:T("tr_taxi")};
 const TR_PATH={plane:"M8 1.2c.55 0 .9.6.9 1.3v3.6l5.6 3.3v1.5L8.9 9.2v3l1.7 1.3v1.2L8 14l-2.6.7v-1.2l1.7-1.3v-3L1.5 10.9V9.4l5.6-3.3V2.5c0-.7.35-1.3.9-1.3z",train:"M4.5 1.5h7a2 2 0 0 1 2 2v7a2 2 0 0 1-1.6 2l1.4 2h-1.6l-1.2-1.8H5.5l-1.2 1.8H2.7l1.4-2a2 2 0 0 1-1.6-2v-7a2 2 0 0 1 2-2zM4.3 3.6v3.6h7.4V3.6zM4.6 9.4v1.5h1.5V9.4zM9.9 9.4v1.5h1.5V9.4z",bus:"M3.5 1.5h9A1.5 1.5 0 0 1 14 3v9.5a1 1 0 0 1-1 1h-.5v1.2a.8.8 0 0 1-1.6 0v-1.2H5.1v1.2a.8.8 0 0 1-1.6 0v-1.2H3a1 1 0 0 1-1-1V3a1.5 1.5 0 0 1 1.5-1.5zM3.6 3.4v4.4h8.8V3.4zM4 10v1.4h1.6V10zM10.4 10v1.4H12V10z",taxi:"M6.2 1.4h3.6v1.7H6.2zM3.6 7l1.2-2.6A1.3 1.3 0 0 1 6 3.6h4a1.3 1.3 0 0 1 1.2.8L12.4 7a1.7 1.7 0 0 1 1.2 1.6v3.6a.8.8 0 0 1-.8.8h-1a.8.8 0 0 1-.8-.8v-.7H5v.7a.8.8 0 0 1-.8.8h-1a.8.8 0 0 1-.8-.8V8.6A1.7 1.7 0 0 1 3.6 7zM5.2 6.8h5.6l-.8-2a.5.5 0 0 0-.45-.3h-3.1a.5.5 0 0 0-.45.3zM4 8.6v1.2h1.6V8.6zM10.4 8.6v1.2H12V8.6z"};
 const TRI=(m,c,sz)=>`<svg class="tr" width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-label="${TR_LABEL[m]}" data-transport="${m}" style="flex-shrink:0;pointer-events:none"><path d="${TR_PATH[m]}" fill="${c}" fill-rule="evenodd"/></svg>`;
 // Plates per stay (D.P value "PLATE1 / PLATE2" from refresh.py; also tolerates lists and "+" / "," separators). One car per plate.
@@ -304,11 +325,11 @@ function alertRaw(code){const v=D.A&&D.A[code];if(!v)return null;return {code,le
 const alertKey=a=>`${a.code}|${a.type}|${a.since}`;
 const alertIsOff=a=>!!ALERT_OFF[alertKey(a)];
 function fmtSince(iso){const d=new Date(iso);if(!iso||isNaN(d))return iso;const p={};for(const x of new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Prague",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(d))p[x.type]=x.value;return `${p.day}.${p.month} ${p.hour}:${p.minute}`}
-function alertHint(a){return `${a.level==="red"?"Extremely urgent":"Urgent"}: ${a.type}${a.note?` · ${a.note}`:""}${a.since?` · since ${fmtSince(a.since)}`:""} · long-press or double-click to turn the warning off`}
-function alertBadge(code){const a=alertRaw(code);if(!a)return "";return `<span class="alert-badge${a.level==="red"?" red":""}${alertIsOff(a)?" off":""}" role="img" data-alert="${a.level}" data-alert-code="${esc(code)}" data-alert-key="${esc(alertKey(a))}" aria-label="${esc(alertHint(a))}" title="${esc(alertHint(a))}"><span aria-hidden="true">⚠</span><span>${esc(a.type)}</span></span>`}
+function alertHint(a){return `${a.level==="red"?T("xurgent"):T("urgent")}: ${alertTypeL(a.type)}${a.note?` · ${a.note}`:""}${a.since?` · ${T("since",fmtSince(a.since))}`:""} · ${T("alert_hint_tail")}`}
+function alertBadge(code){const a=alertRaw(code);if(!a)return "";return `<span class="alert-badge${a.level==="red"?" red":""}${alertIsOff(a)?" off":""}" role="img" data-alert="${a.level}" data-alert-code="${esc(code)}" data-alert-key="${esc(alertKey(a))}" aria-label="${esc(alertHint(a))}" title="${esc(alertHint(a))}"><span aria-hidden="true">⚠</span><span>${esc(alertTypeL(a.type))}</span></span>`}
 function alertMini(code){const a=alertRaw(code);if(!a)return "";return `<span class="alert-mini${a.level==="red"?" red":""}${alertIsOff(a)?" off":""}" data-alert-mini="${a.level}" data-alert-key="${esc(alertKey(a))}">⚠</span>`}
-function alertCard(code){const a=alertRaw(code);if(!a)return "";const r=a.level==="red"?" red":"";const rest=[a.note,a.since?`since ${fmtSince(a.since)}`:""].filter(Boolean).join(" · ");
-  return `<div class="tip-alert${r}" data-tip-alert="${a.level}">⚠ ${a.level==="red"?"Extremely urgent":"Urgent"}: ${esc(a.type)}${alertIsOff(a)?" (warning off here)":""}</div>${rest?`<div class="tip-alert-note${r}" data-tip-alert="${a.level}">${esc(rest)}</div>`:""}`}
+function alertCard(code){const a=alertRaw(code);if(!a)return "";const r=a.level==="red"?" red":"";const rest=[a.note,a.since?T("since",fmtSince(a.since)):""].filter(Boolean).join(" · ");
+  return `<div class="tip-alert${r}" data-tip-alert="${a.level}">⚠ ${a.level==="red"?T("xurgent"):T("urgent")}: ${esc(alertTypeL(a.type))}${alertIsOff(a)?" "+T("warn_off_here"):""}</div>${rest?`<div class="tip-alert-note${r}" data-tip-alert="${a.level}">${esc(rest)}</div>`:""}`}
 const etaShort=v=>String(v).replace(/:00/g,"");
 // Sort key for PŘÍJEZDY: minutes of the ETA's start ("23:00–01:00" → 23:00, "~19:00", "15–16", "20:00+", "18:30–19:00").
 // A start after midnight counts as late (after 23:00) only when its range crosses midnight; no ETA → -1 (first).
@@ -328,13 +349,13 @@ function pragueDayFraction(d=new Date()){
   const {hour,minute,second}=pragueParts(d);
   return Math.min(0.999,Math.max(0,(hour+minute/60+second/3600)/24));
 }
-function zoneLabel(frac){const h=frac*24;return h<CHECKOUT_H?"pre-checkout":h<CHECKIN_H?"cleaning":"check-in";}
+function zoneLabel(frac){const h=frac*24;return h<CHECKOUT_H?T("zone_pre"):h<CHECKIN_H?T("zone_clean"):T("zone_in");}
 function todayYmdFromIdx(origin,i){const d=addDays(origin,i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
 
 const D=window.DATA;
 // Last-minute arrivals (booked < 24 h before 15:00 check-in), from refresh.py.
 const LAST_MIN=new Set(D.M||[]);
-const LAST_MIN_TEXT="! Last-minute booking (< 24 h before check-in)";
+const LAST_MIN_TEXT="! "+T("last_min");
 const origin=parse(D.a), end=parse(D.b);
 // Highlight the device's real "today" if it falls in range, else the build day.
 const now=new Date(); let todayIdx=idx(now,origin);
@@ -347,16 +368,20 @@ const L=D.L; const hb=L.filter(x=>x[1]===1).length;
   const online=!!D.o;
   const src=D.src||"";
   const status=online
-    ? `<span class="online">ONLINE${src==="sync"?" · sync":""}</span>`
-    : `<span class="offline">OFFLINE</span>`;
-  const lg=`<span class="lg" title="Stay colors: Airbnb guest rating (5★ green → ≤4.6 red). Dashed = no rating, judged from guest messages. Gray = no data."><i style="background:${TIER_BG.r5}">5★</i><i style="background:${TIER_BG.r49}">4.9</i><i style="background:${TIER_BG.r48}">4.8</i><i style="background:${TIER_BG.r47}">4.7</i><i style="background:${TIER_BG.r46}">≤4.6</i><i class="d">zprávy</i><i style="background:${STAY_BAR}">?</i></span>`;
+    ? `<span class="online">${T("online")}${src==="sync"?" · "+T("sync"):""}</span>`
+    : `<span class="offline">${T("offline")}</span>`;
+  const lg=`<span class="lg" title="${esc(T("legend_title"))}"><i style="background:${TIER_BG.r5}">5★</i><i style="background:${TIER_BG.r49}">4.9</i><i style="background:${TIER_BG.r48}">4.8</i><i style="background:${TIER_BG.r47}">4.7</i><i style="background:${TIER_BG.r46}">≤4.6</i><i class="d">${T("legend_msgs")}</i><i style="background:${STAY_BAR}">?</i></span>`;
   const metaTitle=online
     ? (src==="airbnb"
-        ? `Aktualizace ${D.u} · ONLINE (live Airbnb host calendar)`
-        : `Aktualizace ${D.u} · ONLINE (email/export sync, not live Airbnb API)`)
-    : `Aktualizace ${D.u} · OFFLINE — no Airbnb host session`;
+        ? `${T("updated")} ${D.u} · ${T("online")} (${T("meta_live")})`
+        : `${T("updated")} ${D.u} · ${T("online")} (${T("meta_sync")})`)
+    : `${T("updated")} ${D.u} · ${T("offline")} — ${T("meta_off")}`;
   const MAG=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.6 L13.2 13.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>`;
-  el.innerHTML=`<span class="meta-l" title="${esc(metaTitle)}">Aktualizace ${esc(D.u)} · ${status}${lg}</span><button type="button" id="today-btn" title="Scroll to today (cleaning panel too)" aria-label="Today">Today</button><button type="button" id="alert-chip" hidden></button><button type="button" id="zoom-reset" hidden title="Reset zoom to 100% (or double-tap empty grid)" aria-label="Reset zoom"></button><button type="button" id="search-btn" aria-label="Search stays" aria-expanded="false" title="Search by plate or guest">${MAG}</button><div id="search-panel"><input id="search-q" type="search" placeholder="Plate, guest, or note" autocomplete="off" spellcheck="false"><div id="search-hits"></div></div>`;
+  el.innerHTML=`<span class="meta-l" title="${esc(metaTitle)}">${T("updated")} ${esc(D.u)} · ${status}${lg}</span>${langSwitch()}<button type="button" id="today-btn" title="${esc(T("today_title"))}" aria-label="${esc(T("today_btn"))}">${T("today_btn")}</button><button type="button" id="alert-chip" hidden></button><button type="button" id="zoom-reset" hidden title="${esc(T("zoom_title"))}" aria-label="${esc(T("zoom_aria"))}"></button><button type="button" id="search-btn" aria-label="${esc(T("search_aria"))}" aria-expanded="false" title="${esc(T("search_title"))}">${MAG}</button><div id="search-panel"><input id="search-q" type="search" placeholder="${esc(T("search_ph"))}" autocomplete="off" spellcheck="false"><div id="search-hits"></div></div>`;
+  // static labels in the page shell
+  const st=(id,attrs)=>{const x=document.getElementById(id);if(x)for(const [k,v] of Object.entries(attrs))k==="text"?x.textContent=v:x.setAttribute(k,v)};
+  st("uk-title",{text:T("uk_title")});st("uk-zoom-reset",{title:T("uk_zoom_title"),"aria-label":T("uk_zoom_aria")});
+  st("park-panel",{"aria-label":T("park")});st("park-handle",{"aria-label":T("park_resize")});st("park-btn",{"aria-label":T("park")});
 })();
 
 // same-day turnaround listings (checkout day == checkin day within window)
@@ -376,11 +401,11 @@ const turnListings=(()=>{
 })();
 
 // names
-let h=`<div class="nhead">Listing</div>`;
+let h=`<div class="nhead">${T("listing")}</div>`;
 L.forEach(([name,kind],i)=>{
   if(i===hb) h+=`<div class="divider"></div>`;
   const isTurn=turnListings.has(name);
-  const tip=isTurn?`${esc(name)} · same-day turnaround`:`${esc(name)} · ${kind===1?"houseboat":"house"}`;
+  const tip=isTurn?`${esc(name)} · ${T("turnaround")}`:`${esc(name)} · ${kind===1?T("houseboat"):T("house")}`;
   h+=`<div class="nrow ${kind===1?"boat":"house"}${i%2?" odd":""}${isTurn?" turn":""}" title="${tip}">${kind===1?LOD:DUM}<span>${esc(name)}</span></div>`;
 });
 document.getElementById("names").innerHTML=h;
@@ -395,15 +420,15 @@ days.forEach(x=>{g+=`<div class="day${x.we?" we":""}${x.today?" today":""}"><spa
 g+=`</div><div class="pdays">`;
 const PARK_DAY=Array.from({length:dayCount},()=>({n:0,cars:[]}));
 D.R.forEach(([code,listing,,s,e])=>{const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pls=platesOf(code);for(let i=a;i<b;i++){PARK_DAY[i].n++;pls.forEach(pl=>PARK_DAY[i].cars.push({listing,plate:pl}));}});
-// only known cars (plate in D.P) count toward the 12 spots; other stays are "car unknown"
-PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/12*100);const ymd=`${days[i].d.getFullYear()}-${String(days[i].d.getMonth()+1).padStart(2,"0")}-${String(days[i].d.getDate()).padStart(2,"0")}`;g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" data-ymd="${ymd}" role="button" aria-label="Parking ${ymd} night: ${k} of 12" title="Parking ${k}/12 known cars (${pct}%)${u?` · ${u} car unknown`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
+// only known cars (plate in D.P) count toward the 14 spots; other stays are "car unknown"
+PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/PARK_SPOTS*100);const ymd=`${days[i].d.getFullYear()}-${String(days[i].d.getMonth()+1).padStart(2,"0")}-${String(days[i].d.getDate()).padStart(2,"0")}`;g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" data-ymd="${ymd}" role="button" aria-label="${esc(T("pday_aria",ymd,k,PARK_SPOTS))}" title="${esc(T("pday_title",k,pct,PARK_SPOTS))}${u?` · ${esc(T("car_unknown_n",u))}`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
 g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
 L.forEach(([n],ri)=>{g+=`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:${gridW}px"></div>`});
 g+=`</div><div class="cols">`;
 days.forEach(x=>{g+=`<div class="col${x.today?" today":x.we?" we":""}"></div>`});
 g+=`</div>`;
 const preW=(CHECKOUT_H/24)*DAY_W, cleanW=((CHECKIN_H-CHECKOUT_H)/24)*DAY_W, inW=((24-CHECKIN_H)/24)*DAY_W;
-g+=`<div class="tzones" style="left:${todayIdx*DAY_W}px;width:${DAY_W}px"><div class="tzone-pre" style="width:${preW}px" title="Pre-checkout (before 10:00)"></div><div class="tzone-clean" style="width:${cleanW}px" title="Cleaning gap (10:00–15:00)"></div><div class="tzone-in" style="width:${inW}px" title="Check-in (from 15:00)"></div></div>`;
+g+=`<div class="tzones" style="left:${todayIdx*DAY_W}px;width:${DAY_W}px"><div class="tzone-pre" style="width:${preW}px" title="${T("zone_pre_t")}"></div><div class="tzone-clean" style="width:${cleanW}px" title="${T("zone_clean_t")}"></div><div class="tzone-in" style="width:${inW}px" title="${T("zone_in_t")}"></div></div>`;
 g+=`<div class="nowline" id="nowBody" style="display:none"></div>`;
 const by={};L.forEach(([n])=>by[n]=[]);
 D.R.forEach(r=>{(by[r[1]]=by[r[1]]||[]).push(r)});
@@ -415,7 +440,7 @@ L.forEach(([name],ri)=>{
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}${alertRaw(code)?` · ⚠ ${alertRaw(code).type}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
+    const t=`${guest} · ${name} · ${gl} ${TP("guests",gc<0?2:gc)} · ${s} → ${e} · ${nN("nights",nights)} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${nN("reviews",q[1])}`:""}${q[2]?` · ${q[2]}`:""}${plate?` · ${T("car")}: ${plate}`:""}${etaOf(code)?` · ${T("eta")} ${etaOf(code)}`:""}${alertRaw(code)?` · ⚠ ${alertTypeL(alertRaw(code).type)}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
     let inner;
     if(gc>3){
       inner=`<span class="heads">${HEAD}</span><span class="n">${gl}</span>`;
@@ -423,7 +448,7 @@ L.forEach(([name],ri)=>{
       const n=gc<0?0:gc;
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
-    if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="last-minute booking">!</span>`+inner;
+    if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="${T("last_min_short")}">!</span>`+inner;
     inner=alertBadge(code)+inner;
     const trm=transportOf(code);
     if(plate||(trm&&trm.m==="car")) inner+=CAR.repeat(Math.min(2,Math.max(1,platesOf(code).length))); // two cars → two icons
@@ -446,7 +471,7 @@ const grid=document.getElementById("grid"); grid.style.width=gridW+"px"; grid.in
     const frac=pragueDayFraction();
     const on=p.ymd===todayIso;
     const x=todayIdx*DAY_W+frac*DAY_W-1;
-    const label=`Now · ${zoneLabel(frac)} · ${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")} Prague`;
+    const label=T("now_title",zoneLabel(frac),`${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")}`);
     ["nowBody","nowHead"].forEach(id=>{
       const el=document.getElementById(id);
       if(!el) return;
@@ -558,7 +583,7 @@ document.getElementById("today-btn").addEventListener("click",goToday);
 // Alerts: chip "⚠ N" (tap → first alert), long press / double-click turns a badge off on this device, Undo toast.
 (function(){
   const chip=document.getElementById("alert-chip");
-  document.body.insertAdjacentHTML("beforeend",`<div id="alert-toast" role="status" data-alert-toast hidden><span>Warning off ·</span><button type="button" data-alert-undo>Undo</button></div>`);
+  document.body.insertAdjacentHTML("beforeend",`<div id="alert-toast" role="status" data-alert-toast hidden><span>${T("toast_off")}</span><button type="button" data-alert-undo>${T("undo")}</button></div>`);
   const toast=document.getElementById("alert-toast");
   const byCode=new Map(D.R.map(r=>[r[0],r]));
   let toastA=null,toastT=0;
@@ -568,8 +593,8 @@ document.getElementById("today-btn").addEventListener("click",goToday);
     document.querySelectorAll("[data-alert-key]").forEach(el=>el.classList.toggle("off",!!ALERT_OFF[el.dataset.alertKey]));
     const l=list(); chip.hidden=!l.length; chip.dataset.alertChip=String(l.length);
     chip.classList.toggle("red",l.some(a=>a.level==="red")); chip.textContent=`⚠ ${l.length}`;
-    chip.setAttribute("aria-label",`${l.length} urgent alert${l.length===1?"":"s"}: show the first`);
-    chip.title=l.map(a=>`${a.type} · ${byCode.get(a.code)[1]}`).join("\n");
+    chip.setAttribute("aria-label",T("chip_aria",l.length));
+    chip.title=l.map(a=>`${alertTypeL(a.type)} · ${byCode.get(a.code)[1]}`).join("\n");
   }
   function setOff(a,off){
     if(off) ALERT_OFF[alertKey(a)]=Date.now(); else delete ALERT_OFF[alertKey(a)];
@@ -646,16 +671,16 @@ function stayCard(code){
   const plate=(D.P&&D.P[c])||"";
   let h=`<div class="tip-name">${esc(guest)}</div>`+alertCard(c);
   h+=`<div class="tip-listing">${esc(listing)}</div>`;
-  h+=`<div>${esc(s)} → ${esc(e)} · ${nights} night${nights===1?"":"s"}</div>`;
-  h+=`<div>${esc(gl)} guest${gc===1?"":"s"}</div>`;
-  h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${q[1]} reviews`:""}</div>`;
+  h+=`<div>${esc(s)} → ${esc(e)} · ${nN("nights",nights)}</div>`;
+  h+=`<div>${esc(gl)} ${TP("guests",gc<0?2:gc)}</div>`;
+  h+=`<div>${esc(TIER_LABEL[q[0]]||"")}${q[1]>=0?` · ${nN("reviews",q[1])}`:""}</div>`;
   if(LAST_MIN.has(c)) h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(q[2]) h+=`<div>${esc(q[2])}</div>`;
   const tr=transportOf(c);
   platesOf(c).forEach((pl,j)=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(pl)}${j===0&&tr&&tr.m==="car"&&tr.note?` · ${esc(tr.note)}`:""}</div>`});
   if(tr&&!(tr.m==="car"&&plate)) h+=`<div class="tip-tr">${tr.m==="car"?CARF("#111827",15):TRI(tr.m,"#111827",15)}${esc(TR_LABEL[tr.m])}${tr.note?` · ${esc(tr.note)}`:""}</div>`;
-  if(etaOf(c)) h+=`<div class="tip-eta" data-tip-eta="${esc(etaOf(c))}">${CLOCK("#0F766E",15)}ETA ${esc(etaOf(c))}</div>`;
-  {const x=depOf(c);if(x&&x[1])h+=`<div class="tip-eta" data-tip-dep="left"><span class="volno">VOLNO</span> guest wrote they left${x[2]?` · ${esc(x[2])}`:""}</div>`;else if(x&&x[0])h+=`<div class="tip-eta" data-tip-dep="${esc(x[0])}">${CLOCK("#0F766E",15)}Departure ${esc(x[0])}</div>`;}
+  if(etaOf(c)) h+=`<div class="tip-eta" data-tip-eta="${esc(etaOf(c))}">${CLOCK("#0F766E",15)}${T("eta")} ${esc(etaOf(c))}</div>`;
+  {const x=depOf(c);if(x&&x[1])h+=`<div class="tip-eta" data-tip-dep="left"><span class="volno">${T("volno")}</span> ${T("left")}${x[2]?` · ${esc(x[2])}`:""}</div>`;else if(x&&x[0])h+=`<div class="tip-eta" data-tip-dep="${esc(x[0])}">${CLOCK("#0F766E",15)}${T("departure")} ${esc(x[0])}</div>`;}
   h+=`<div class="tip-muted">${esc(c)}</div>`;
   return h;
 }
@@ -667,8 +692,9 @@ function ukCard(el){
   let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
   if(el.dataset.code) h+=alertCard(el.dataset.code);
-  if(turn) h+=`<div>same-day turnaround</div>`;
-  if(el.dataset.eta) h+=`<div class="tip-eta" data-tip-eta="${esc(el.dataset.eta)}">${CLOCK("#0F766E",15)}ETA ${esc(el.dataset.eta)}</div>`;
+  if(turn) h+=`<div>${T("turnaround")}</div>`;
+  if(el.dataset.left==="1"){const x=depOf(el.dataset.code);h+=`<div class="tip-eta" data-tip-dep="left"><span class="volno">${T("volno")}</span> ${T("left")}${x&&x[2]?` · ${esc(x[2])}`:""}</div>`}
+  else if(el.dataset.eta) h+=`<div class="tip-eta" data-tip-eta="${esc(el.dataset.eta)}">${CLOCK("#0F766E",15)}${el.dataset.left==="0"?T("departure"):T("eta")} ${esc(el.dataset.eta)}</div>`;
   if(el.dataset.lm==="1") h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
   if(el.dataset.plate) el.dataset.plate.split(/\s*[\/+,;]\s*/).filter(Boolean).forEach(pl=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(pl)}</div>`});
   return h;
@@ -742,10 +768,10 @@ hookTip(grid, ".bar", b=>b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||"
 function pdayCard(el){
   const i=+el.dataset.pday, pk=PARK_DAY[i]; if(!pk) return "";
   const d=addDays(origin,i), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const k=pk.cars.length, u=pk.n-k, pct=Math.round(k/12*100);
-  let h=`<div class="tip-name">P${k} · ${k}/12 · ${pct}%${k>12?` · +${k-12} over`:""}</div><div class="tip-listing">${ymd} night</div>`;
+  const k=pk.cars.length, u=pk.n-k, pct=Math.round(k/PARK_SPOTS*100);
+  let h=`<div class="tip-name">P${k} · ${k}/${PARK_SPOTS} · ${pct}%${k>PARK_SPOTS?` · ${T("over",k-PARK_SPOTS)}`:""}</div><div class="tip-listing">${T("night_of",ymd)}</div>`;
   pk.cars.forEach(c=>{h+=`<div class="tip-car">${CARF("#111827",15)}${esc(c.plate)} · ${esc(c.listing)}</div>`});
-  if(u>0) h+=`<div class="tip-muted">${u} stay${u===1?"":"s"}, car unknown</div>`;
+  if(u>0) h+=`<div class="tip-muted">${TP("stays_car_unknown",u)}</div>`;
   return h;
 }
 grid.addEventListener("mouseover",e=>{if(!fineHover())return;const b=e.target.closest(".pday");if(b)showTip(b,pdayCard(b),false)});
@@ -769,7 +795,7 @@ document.addEventListener("pointerdown",e=>{
 // Uklidy: scrollable past ← dnes/zítra/pozítří → future; gray outside focus
 let UK_TODAY_N=null;
 (function(){
-  const CZ_WD=["ne","po","út","st","čt","pá","so"];
+  const CZ_WD=T("wd_uk");
   const UK_COL_W=118;
   const today=parse(D.t);
   const start=parse(D.a);
@@ -777,7 +803,7 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · departs ":" · ETA ")+it.eta:"")+(it.left?" · VOLNO – guest wrote they left"+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">VOLNO${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${alertBadge(it.code)}</div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno")+" – "+T("left")+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · "+T("turnaround"):"")+(it.lm?" · "+T("last_min_short"):""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">${T("volno")}${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${alertBadge(it.code)}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -799,14 +825,14 @@ let UK_TODAY_N=null;
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?(k==="out"?" · departs ":" · ETA ")+it.eta:"")+(it.left?" · VOLNO":"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${alertMini(it.code)}${esc(it.listing)}${it.left?`<span class="volno">VOLNO</span>`:""}${!it.left&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
+    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?T("out"):T("in"))+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?(k==="out"?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno"):"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?`<span class="lm" aria-label="${T("last_min_short")}">!</span>`:""}${alertMini(it.code)}${esc(it.listing)}${it.left?`<span class="volno">${T("volno")}</span>`:""}${!it.left&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
     const [wd,dm]=label.split(" ");
     const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
     html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}${compact}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
-    html+=`<div class="uk-sec out"><div class="uk-sub">Odjezdy</div>`;
+    html+=`<div class="uk-sec out"><div class="uk-sub">${T("out")}</div>`;
     html+= outs.length? outs.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
-    html+=`</div><div class="uk-rule"></div><div class="uk-sec in"><div class="uk-sub">Příjezdy</div>`;
+    html+=`</div><div class="uk-rule"></div><div class="uk-sec in"><div class="uk-sub">${T("in")}</div>`;
     html+= inns.length? inns.map(it=>row(it,turnSet.has(it.listing))).join("") : `<div class="uk-empty">—</div>`;
     html+=`</div></div></div>`;
   }
@@ -825,7 +851,7 @@ let UK_TODAY_N=null;
     if(p.ymd!==D.t){uk.style.display="none";return;}
     uk.style.display="block";
     uk.style.left=(frac*UK_TODAY_W-1)+"px";
-    uk.title=`Now · ${zoneLabel(frac)} · ${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")} Prague`;
+    uk.title=T("now_title",zoneLabel(frac),`${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")}`);
   })();
 })();
 
@@ -838,7 +864,7 @@ let UK_TODAY_N=null;
 const SHEETS=[]; let SHEET_DRAG_AT=0;
 const UP_CHEV='<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 6.5 5 3.5 8 6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function updDock(){const dk=document.getElementById("sheet-dock");if(!dk)return;const g=SHEETS.filter(x=>x.gone&&(x.o.visible?x.o.visible():true));
-  dk.innerHTML=g.map(x=>`<button type="button" data-sheet-tab="${x.o.key}" aria-label="Show ${x.o.label} panel">${UP_CHEV}${x.o.label}${x.o.tabNote?`<span class="n">${esc(x.o.tabNote())}</span>`:""}</button>`).join("");dk.hidden=!g.length}
+  dk.innerHTML=g.map(x=>`<button type="button" data-sheet-tab="${x.o.key}" aria-label="${esc(T("dock_show",x.o.label))}">${UP_CHEV}${x.o.label}${x.o.tabNote?`<span class="n">${esc(x.o.tabNote())}</span>`:""}</button>`).join("");dk.hidden=!g.length}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-sheet-tab]");if(!b)return;const x=SHEETS.find(s=>s.o.key===b.dataset.sheetTab);if(x){e.preventDefault();x.wake()}});
 function makeSheet(o){
   const S={tucked:false,gone:false,h:null,view:null,timer:0,o}, EASE="cubic-bezier(.32,.72,0,1)", MS=300, w=o.wrap;
@@ -914,7 +940,7 @@ function makeSheet(o){
 // Cleaning panel (ÚKLIDY): tucked = handle + two compact lines (odjezdy / příjezdy) per day.
 const UK_SHEET=(function(){
   const w=document.getElementById("uk-wrap"), h=document.getElementById("uk-handle"), TUCK=30+3+16*2+2;
-  const sum=h.querySelector(".uk-sum"); if(UK_TODAY_N) sum.textContent=`· dnes odj ${UK_TODAY_N[0]} · příj ${UK_TODAY_N[1]}`;
+  const sum=h.querySelector(".uk-sum"); if(UK_TODAY_N) sum.textContent=T("uk_sum",UK_TODAY_N[0],UK_TODAY_N[1]);
   const strip=document.getElementById("uklidy");
   const contentH=()=>{ if(w.classList.contains("tucked"))return null;
     const sr=strip.getBoundingClientRect(), cols=strip.children; let best=0;
@@ -923,10 +949,10 @@ const UK_SHEET=(function(){
       const lr=list.getBoundingClientRect(), a=list.firstElementChild.getBoundingClientRect(), b=list.lastElementChild.getBoundingClientRect();
       best=Math.max(best,(lr.top-r.top)+(b.bottom-a.top)+3);}
     if(!best)return null; return h.getBoundingClientRect().height+(sr.top-h.getBoundingClientRect().bottom)+parseFloat(getComputedStyle(strip).paddingTop||0)+best+2; };
-  const S=makeSheet({wrap:w,handle:h,zones:[strip],tuckH:TUCK,key:"uklidySheet",contentH,label:"Úklidy",tabNote:()=>UK_TODAY_N?`${UK_TODAY_N[0]}/${UK_TODAY_N[1]}`:"",
+  const S=makeSheet({wrap:w,handle:h,zones:[strip],tuckH:TUCK,key:"uklidySheet",contentH,label:T("uk_title"),tabNote:()=>UK_TODAY_N?`${UK_TODAY_N[0]}/${UK_TODAY_N[1]}`:"",
     legacyTucked:()=>{try{return localStorage.getItem("uklidyTucked")==="1"}catch(_){return false}},
     onView:t=>{w.classList.toggle("tucked",t)},
-    onState:()=>{w.dataset.ukWrap=S.gone?"gone":S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?"Expand cleaning panel (tap) or drag up":"Tuck cleaning panel (tap) or drag to resize");try{localStorage.setItem("uklidyTucked",S.tucked?"1":"0")}catch(_){}}});
+    onState:()=>{w.dataset.ukWrap=S.gone?"gone":S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?T("uk_expand"):T("uk_tuck"));try{localStorage.setItem("uklidyTucked",S.tucked?"1":"0")}catch(_){}}});
   if(S.gone) S.hide(false); else if(S.tucked) S.tuck(false); else S.expand(false);
   return S;
 })();
@@ -1013,10 +1039,10 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
 // Parking: one source of truth (only known cars, i.e. a plate in D.P, are counted). Tonight = sleeping here tonight (start<=today<end, same rule as the per-day P row);
 // Now = in-house at the current Prague time (after 15:00 check-in, before 10:00 checkout). One car per counted stay, by listing.
 (function(){
-  const SPOTS=12, TAN=Math.tan(20*Math.PI/180);
+  const SPOTS=PARK_SPOTS, TAN=Math.tan(20*Math.PI/180);
   const btn=document.getElementById("park-btn"), panel=document.getElementById("park-panel"), cnt=document.getElementById("park-count");
   let mode="tonight", day=null; // day = YYYY-MM-DD opened from a P cell; null = tonight/now
-  const dayLabel=ymd=>new Date(`${ymd}T12:00:00Z`).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).replace(",","");
+  const dayLabel=ymd=>new Date(`${ymd}T12:00:00Z`).toLocaleDateString(T("locale"),{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).replace(",","");
   function stays(night){
     const p=pragueParts(), today=night||p.ymd, now=[], tonight=[];
     D.R.forEach(([code,listing,guest,s,e])=>{
@@ -1034,7 +1060,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   function svg(cars){
     const W=36,H=70,off=H*TAN,top=6,labelH=30,vbW=SPOTS*W+off+8,vbH=H+top*2+labelH, shown=cars.slice(0,SPOTS);
     const fit=(t,fs,pc,av)=>t.length*fs*pc>av?` textLength="${av}" lengthAdjust="spacingAndGlyphs"`:"";
-    let h=`<svg viewBox="0 0 ${vbW} ${vbH}" width="100%" role="img" aria-label="${shown.length} of ${SPOTS} parking spots taken by known cars" style="display:block"><rect x="0" y="0" width="${vbW}" height="${H+top*2}" rx="6" fill="#E5E7EB"/>`;
+    let h=`<svg viewBox="0 0 ${vbW} ${vbH}" width="100%" role="img" aria-label="${esc(T("spots_aria",shown.length,SPOTS))}" style="display:block"><rect x="0" y="0" width="${vbW}" height="${H+top*2}" rx="6" fill="#E5E7EB"/>`;
     for(let i=0;i<SPOTS;i++){
       const x0=4+i*W, c=shown[i], cx=x0+W/2+off/2, cy=top+H/2, base=x0+W/2+2;
       const lh=i===0?base-2:shown[i-1]?W/2-1.5:W-2, rh=i===SPOTS-1?vbW-base-2:shown[i+1]?W/2-1.5:W-2, av=Math.min(lh,rh,W)*2;
@@ -1053,23 +1079,23 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     // only stays with a known plate (D.P) are cars; the rest are "car unknown" and never counted
     const info=stays(), all=day?stays(day).tonight:mode==="tonight"?info.tonight:info.now, list=all.flatMap(x=>platesOf(x.code).map((pl,j)=>({...x,plate:pl,car:j}))), n=list.length, unknown=all.filter(x=>!x.plate).length, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
     const tonightCars=info.tonight.reduce((a,x)=>a+platesOf(x.code).length,0);
-    cnt.textContent=`Tonight ${Math.round(tonightCars/SPOTS*100)}%`; cnt.dataset.parkCapsule=String(tonightCars);
+    cnt.textContent=T("capsule",Math.round(tonightCars/SPOTS*100)); cnt.dataset.parkCapsule=String(tonightCars); cnt.setAttribute("aria-label",T("capsule_aria",tonightCars,SPOTS));
     const col=pct>=100?"#BE123C":pct>=50?"#B45309":"#1D4ED8";
     const tuckEl=document.getElementById("park-tuck");
-    if(tuckEl) tuckEl.innerHTML=`<span>P</span><span>${day?esc(dayLabel(day)):mode==="tonight"?"Tonight":"Now"}</span><span class="pt-sub" data-park-tuck-n="${n}">${n}/${SPOTS} · ${pct}%</span><span class="pt-nav" aria-hidden="true">‹ swipe ›</span>`;
+    if(tuckEl) tuckEl.innerHTML=`<span>P</span><span>${day?esc(dayLabel(day)):mode==="tonight"?T("park_tonight"):T("park_now")}</span><span class="pt-sub" data-park-tuck-n="${n}">${n}/${SPOTS} · ${pct}%</span><span class="pt-nav" aria-hidden="true">${T("swipe")}</span>`;
     const cur=curNight();
-    document.getElementById("park-body").innerHTML=`<div class="ph" style="align-items:center"><span class="pnav"><button type="button" data-park-nav="-1" aria-label="Previous night"${cur<=D.a?" disabled":""}>‹</button><span class="ptitle" data-park-title="${day||""}">${day?`Parking · ${dayLabel(day)} · ${n}/${SPOTS} · ${pct}%`:"Parking"}</span><button type="button" data-park-nav="1" aria-label="Next night"${cur>=D.b?" disabled":""}>›</button></span><span class="ptabs" role="tablist"${day?' style="display:none"':""}><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">Tonight</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">Now</button></span></div>`+
-      `<div class="psum" data-park-n="${n}" data-park-unknown="${unknown}"><b>${n}/${SPOTS} · ${pct}%</b><span>· known car${n===1?"":"s"}</span>${over>0?`<span class="povr" data-park-over="${over}">+${over} over</span>`:""}</div>`+
+    document.getElementById("park-body").innerHTML=`<div class="ph" style="align-items:center"><span class="pnav"><button type="button" data-park-nav="-1" aria-label="${T("prev_night")}"${cur<=D.a?" disabled":""}>‹</button><span class="ptitle" data-park-title="${day||""}">${day?`${T("park")} · ${dayLabel(day)} · ${n}/${SPOTS} · ${pct}%`:T("park")}</span><button type="button" data-park-nav="1" aria-label="${T("next_night")}"${cur>=D.b?" disabled":""}>›</button></span><span class="ptabs" role="tablist"${day?' style="display:none"':""}><button type="button" role="tab" data-park-tab="tonight" aria-selected="${mode==="tonight"}">${T("park_tonight")}</button><button type="button" role="tab" data-park-tab="now" aria-selected="${mode==="now"}">${T("park_now")}</button></span></div>`+
+      `<div class="psum" data-park-n="${n}" data-park-unknown="${unknown}"><b>${n}/${SPOTS} · ${pct}%</b><span>· ${TP("known_cars",n)}</span>${over>0?`<span class="povr" data-park-over="${over}">${T("over",over)}</span>`:""}${n>=PARK_OWN?`<span class="pown" data-park-own="${n}">${T("park_note")}</span>`:""}</div>`+
       `<div class="pbar"><div style="width:${Math.min(100,pct)}%;background:${col}"></div></div>${svg(list)}`+
-      `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} other stay${unknown===1?"":"s"} ${day?"that night":mode==="tonight"?"tonight":"in-house now"} · car unknown</div>`+
-      `<div class="pnote" style="color:#6B7280">${day?`Sleeping here the night of ${day} (after that day's checkouts and arrivals)`:mode==="tonight"?`Sleeping here tonight (${info.today})`:`In-house now (${info.hhmm} Prague)`} · only stays with a known plate count</div>`+
-      `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">No known cars.</div>`}</div>`;
+      `<div class="pnote" data-park-unknown-line="${unknown}" style="margin-top:4px;color:#6B7280">${unknown} ${TP("other_stays",unknown)} ${day?T("that_night"):mode==="tonight"?T("tonight_l"):T("inhouse_now")} · ${T("car_unknown")}</div>`+
+      `<div class="pnote" style="color:#6B7280">${day?T("note_day",day):mode==="tonight"?T("note_tonight",info.today):T("note_now",info.hhmm)} · ${T("note_plates")}</div>`+
+      `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">${T("no_cars")}</div>`}</div>`;
   }
   // bottom sheet: P button / capsule / P cell open it expanded; the handle drags or tucks it (tucked = title + N/12 · %); P button closes
   const pContentH=()=>{const body=document.getElementById("park-body"),hd=document.getElementById("park-handle");if(panel.classList.contains("tucked")||!body.firstElementChild)return null;
     const cs=getComputedStyle(body),a=body.firstElementChild.getBoundingClientRect(),b=body.lastElementChild.getBoundingClientRect();
     return hd.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(b.bottom-a.top)+2};
-  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,hAxis:true,contentH:pContentH,label:"Parking",
+  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,hAxis:true,contentH:pContentH,label:T("park"),
     visible:()=>panel.classList.contains("open"),
     onView:t=>panel.classList.toggle("tucked",t),
     onState:()=>{panel.dataset.parkSheet=PSHEET.gone?"gone":PSHEET.tucked?"tucked":"open";savePark()}});
@@ -1129,7 +1155,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""];
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${listing} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}`;
+    const t=`${guest} · ${listing} · ${gl} ${TP("guests",gc<0?2:gc)} · ${s} → ${e} · ${nN("nights",nights)} · ${code} · ${TIER_LABEL[q[0]]||""}${q[1]>=0?` · ${nN("reviews",q[1])}`:""}${q[2]?` · ${q[2]}`:""}${plate?` · ${T("car")}: ${plate}`:""}${etaOf(code)?` · ${T("eta")} ${etaOf(code)}`:""}`;
     return {code,listing,guest,s,e,plate,hay:norm([guest,plate,t].join(" "))};
   });
   function openPanel(on){
@@ -1157,10 +1183,10 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   }
   function render(){
     const q=norm(input.value);
-    if(!q){hits.innerHTML=`<div class="empty">Type a plate or guest name</div>`;return;}
+    if(!q){hits.innerHTML=`<div class="empty">${T("search_empty")}</div>`;return;}
     const found=index.filter(it=>it.hay.includes(q));
-    if(!found.length){hits.innerHTML=`<div class="empty">No matches</div>`;return;}
-    hits.innerHTML=found.map(it=>`<button type="button" data-code="${esc(it.code)}"><div class="who">${esc(it.guest)} · ${esc(it.listing)}</div><div class="sub">${esc(it.s)} → ${esc(it.e)}${it.plate?` · Car: ${esc(it.plate)}`:""}</div></button>`).join("");
+    if(!found.length){hits.innerHTML=`<div class="empty">${T("search_none")}</div>`;return;}
+    hits.innerHTML=found.map(it=>`<button type="button" data-code="${esc(it.code)}"><div class="who">${esc(it.guest)} · ${esc(it.listing)}</div><div class="sub">${esc(it.s)} → ${esc(it.e)}${it.plate?` · ${T("car")}: ${esc(it.plate)}`:""}</div></button>`).join("");
   }
   btn.addEventListener("click",e=>{e.stopPropagation();openPanel(!panel.classList.contains("open"));if(panel.classList.contains("open"))render();});
   input.addEventListener("input",render);
