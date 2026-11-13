@@ -532,7 +532,8 @@ function askPin(err){return new Promise(res=>{let w=document.getElementById("tec
   w.querySelector("form").onsubmit=e=>{e.preventDefault();const p=inp.value.trim();if(!/^[0-9]{4,12}$/.test(p)){w.querySelector("[data-pin-err]").textContent=T("e_pin_invalid");return}
     const n=w.querySelector("[data-pin-name]").value.trim();try{n?localStorage.setItem(NAME_KEY,n):localStorage.removeItem(NAME_KEY)}catch(_){}
     pinSet(p);done(p)}})}
-const sbErr=e=>T(({pin_invalid:"e_pin_invalid",pin_locked:"e_pin_locked",pin_not_set:"e_pin_not_set",rate_limited:"e_rate_limited",out_of_range:"e_out_of_range",offline:"e_offline",net:"e_net"})[e]||"c_rejected")+(/^(mode_unsupported)/.test(e||"")?" · "+T("e_mode"):"");
+const SB_ERR={pin_invalid:"e_pin_invalid",pin_locked:"e_pin_locked",pin_not_set:"e_pin_not_set",rate_limited:"e_rate_limited",out_of_range:"e_out_of_range",offline:"e_offline",net:"e_net"};
+const sbErr=e=>SB_ERR[e]?T(SB_ERR[e]):/^mode_unsupported/.test(e||"")?T("e_mode"):String(e||T("c_rejected")).slice(0,60);
 // Last-minute arrivals (booked < 24 h before 15:00 check-in), from refresh.py.
 const LAST_MIN=new Set(D.M||[]);
 const LAST_MIN_TEXT="! "+T("last_min");
