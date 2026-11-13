@@ -515,12 +515,12 @@ L.forEach(([name],ri)=>{
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
     if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="${T("last_min_short")}">!</span>`+inner;
-    // flashing alert: on TODAY's cell of the row while the guest is in-house (arrived before today, leaves today or later); otherwise at the stay start
+    // flashing alert: only on TODAY's cell: mid-bar while the guest is in-house, at the start when arriving today; future/past stays carry none
     let abs="";
     if(alertRaw(code)){const si=idx(parse(s),origin),ei=idx(parse(e),origin);
       if(si<todayIdx&&ei>=todayIdx){const segL=todayIdx*DAY_W,segR=Math.min((todayIdx+1)*DAY_W,left+w),cx=Math.round((Math.max(segL,left)+segR)/2-left);
         abs=alertBadge(code).replace('<span class="alert-badge',`<span style="left:${cx}px" data-alert-today class="alert-badge at-today`)}
-      else inner=alertBadge(code)+inner}
+      else if(si===todayIdx) inner=alertBadge(code)+inner} // arrives today: badge at the start = today's cell; other days: none (t139u)
     const trm=transportOf(code);
     if(plate||(trm&&trm.m==="car")) inner+=CAR.repeat(Math.min(2,Math.max(1,platesOf(code).length))); // two cars → two icons
     if(trm&&trm.m!=="car") inner+=TRI(trm.m,INK,10);
@@ -907,8 +907,8 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  // alerts flash only in TODAY's column; other days get a small static ⚠ (t136u)
-  const row=(it,turn,tod)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${tod&&alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno")+" – "+T("left")+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · "+T("turnaround"):"")+(it.lm?" · "+T("last_min_short"):""))}">${it.kind===1?LOD:DUM}${tod?"":alertMini(it.code)}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">${T("volno")}${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${tod?alertBadge(it.code):""}</div>`;
+  // alerts only in TODAY's column; other days carry no alert marker at all (t139u)
+  const row=(it,turn,tod)=>`<div class="uk-row${turn?" turn":""}${it.eta||it.left?" has-eta":""}${it.left?" left":""}${tod&&alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}"${it.out?` data-left="${it.left?1:0}"`:""} title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?(it.out?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno")+" – "+T("left")+(it.leftAt?" "+it.leftAt:""):"")+(turn?" · "+T("turnaround"):"")+(it.lm?" · "+T("last_min_short"):""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta&&!it.left?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${it.left?`<span class="volno" data-volno="${esc(it.leftAt||"")}">${T("volno")}${it.leftAt?" "+esc(it.leftAt):""}</span>`:""}${tod?alertBadge(it.code):""}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -930,9 +930,9 @@ let UK_TODAY_N=null;
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?T("out"):T("in"))+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?(k==="out"?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno"):"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?`<span class="lm" aria-label="${T("last_min_short")}">!</span>`:""}${alertMini(it.code)}${esc(it.listing)}${it.left?`<span class="volno">${T("volno")}</span>`:""}${!it.left&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
+    const cmp=(arr,k,tod)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?T("out"):T("in"))+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?(k==="out"?" · "+T("departs")+" ":" · "+T("eta")+" ")+it.eta:"")+(it.left?" · "+T("volno"):"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?`<span class="lm" aria-label="${T("last_min_short")}">!</span>`:""}${tod&&alertRaw(it.code)?alertMini(it.code):""}${esc(it.listing)}${it.left?`<span class="volno">${T("volno")}</span>`:""}${!it.left&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
     const [wd,dm]=label.split(" ");
-    const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
+    const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out",offToday===0)}<span class="d">${esc(dm)}</span>${cmp(inns,"in",offToday===0)}</div>`;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
     html+=`<div class="uk-col${focus?"":" muted"}"${offToday===0?" data-ukday0":""}>${mark}${nowUk}${compact}<div class="uk-h" title="${esc(label+" · "+iso)}">${esc(label)}</div><div class="uk-list">`;
     html+=`<div class="uk-sec out"><div class="uk-sub">${T("out")}</div>`;
