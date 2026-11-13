@@ -25,6 +25,9 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #meta .meta-l{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #zoom-reset{flex-shrink:0;height:20px;padding:0 7px;border:0;border-radius:999px;background:var(--accent-subtle);color:var(--accent);font:600 11px/20px system-ui,sans-serif;cursor:pointer}
 #zoom-reset[hidden]{display:none}
+#today-btn{flex-shrink:0;height:22px;padding:0 11px;border:0;border-radius:999px;background:rgba(118,118,128,.12);color:#007AFF;font:600 12px/22px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;transition:background .15s}
+#today-btn:active{background:rgba(118,118,128,.24)}
+.months{touch-action:none;cursor:ew-resize}
 #names .nrow span{font-size:calc(13px * var(--nzf,1))}
 #shell{touch-action:pan-x pan-y}
 #search-btn{flex-shrink:0;width:24px;height:24px;border:0;background:transparent;color:var(--t2);padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer}
@@ -112,6 +115,28 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .lm-pill,.uk-row .lm{display:inline-block;min-width:13px;height:13px;border-radius:999px;background:#E11D48;color:#FFFFFF;font-size:10px;font-weight:800;line-height:13px;text-align:center;flex-shrink:0}
 .bar .lm{flex-shrink:0;width:12px;height:12px;border-radius:999px;background:#E11D48;color:#fff;font-size:10px;font-weight:800;line-height:12px;text-align:center}
 .tip-lm{color:#BE123C;font-weight:700;display:flex;align-items:center;gap:4px}
+/* Urgent-attention alerts (D.A): flashing badge; red ≈0.5 s cycle, yellow ≈0.9 s; steady glow with reduced motion */
+.alert-badge{display:inline-flex;align-items:center;gap:2px;flex-shrink:0;height:14px;padding:0 4px;border-radius:999px;box-sizing:border-box;font-size:10px;font-weight:800;line-height:1;white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;--glow:rgba(234,179,8,.95);background:#FACC15;color:#1C1400;border:1px solid #A16207;animation:alertFlash .45s ease-in-out infinite alternate}
+.alert-badge.red{--glow:rgba(220,38,38,.9);background:#DC2626;color:#FFFFFF;border-color:#7F1D1D;animation-duration:.25s}
+.alert-badge.off,.alert-mini.off{display:none!important}
+.bar .bar-inner .alert-badge,.uk-row > .alert-badge{pointer-events:auto}
+.uk-row > .alert-badge{font-size:9.5px}
+.uk-row.has-alert{flex-wrap:wrap;row-gap:0}
+.uk-row.has-alert .nm{flex:0 1 auto}
+.alert-mini{color:#A16207;font-weight:800;margin-right:1px}
+.alert-mini.red{color:#DC2626}
+@keyframes alertFlash{from{opacity:1;box-shadow:0 0 0 2px var(--glow),0 0 9px var(--glow)}to{opacity:.3;box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion: reduce){.alert-badge{animation:none;box-shadow:0 0 0 2px var(--glow),0 0 7px var(--glow)}}
+.tip-alert{font-weight:700;color:#854D0E;background:#FEF3C7;padding:1px 6px;margin:3px -4px 0;border-radius:6px 6px 0 0}
+.tip-alert.red{color:#B91C1C;background:#FEE2E2}
+.tip-alert-note{color:#374151;background:#FEF3C7;padding:1px 6px;margin:0 -4px 3px;border-radius:0 0 6px 6px}
+.tip-alert-note.red{background:#FEE2E2}
+#alert-chip{flex-shrink:0;height:22px;padding:0 9px;border:0;border-radius:999px;background:#FACC15;color:#1C1400;font:800 12px/22px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+#alert-chip.red{background:#DC2626;color:#fff}
+#alert-chip[hidden]{display:none}
+#alert-toast{position:fixed;left:50%;bottom:50px;transform:translateX(-50%);z-index:10001;display:flex;align-items:center;gap:10px;background:#111827;color:#fff;border-radius:999px;padding:5px 6px 5px 14px;font:600 13px/1.2 system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.3);white-space:nowrap}
+#alert-toast[hidden]{display:none}
+#alert-toast button{border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#93C5FD;font:700 13px/24px system-ui,sans-serif;padding:0 10px;cursor:pointer}
 .uk-row .nm{font-size:11px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .uk-empty{font-size:11px;color:var(--t3)}
 /* Parking button + slide-out panel (12 angled spots) */
@@ -142,7 +167,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 #park-panel .psum b{font-size:13px}
 #park-panel .psum span{font-size:12px;color:#374151}
 #park-panel .povr{font-size:11px;font-weight:700;color:#fff;background:#BE123C;border-radius:999px;padding:0 7px;line-height:16px}
-#park-panel .pstays{margin-top:4px;max-height:150px;overflow-y:auto;font-size:12px;line-height:1.45}
+#park-panel .pstays{margin-top:4px;font-size:12px;line-height:1.45}
 #park-panel .pstay{display:flex;gap:6px;align-items:center;color:#111827}
 #park-panel .pstay.ov{color:#BE123C}
 #park-panel .pstay .no{width:18px;text-align:right;color:#4B5563;font-variant-numeric:tabular-nums}
@@ -194,6 +219,9 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 /* tuckable uklidy: handle + two compact lines (odjezdy / příjezdy) per day */
 #uk-wrap{flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
 #uk-wrap.sized #uklidy{flex:1 1 auto;max-height:none}
+#uk-wrap:not(.tucked) .uk-col{zoom:var(--ukz,1)}
+#uk-zoom-reset{margin-left:auto;flex-shrink:0;height:18px;padding:0 7px;border:0;border-radius:999px;background:var(--accent-subtle);color:var(--accent);font:600 10px/18px system-ui,sans-serif;letter-spacing:0;text-transform:none;cursor:pointer;touch-action:manipulation}
+#uk-zoom-reset[hidden]{display:none}
 #uk-wrap #uklidy{border-top:0}
 #uk-handle{position:relative;height:30px;flex:0 0 30px;display:flex;align-items:center;gap:5px;padding:9px 6px 0;border-top:1px solid var(--b-subtle);cursor:ns-resize;user-select:none;-webkit-user-select:none;touch-action:none;color:var(--t3);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 #uk-handle svg{flex-shrink:0;transition:transform 360ms cubic-bezier(.32,.72,0,1)}
@@ -220,7 +248,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
     <div id="names"></div>
     <div id="scroller"><div id="grid"></div></div>
   </div>
-  <div id="uk-wrap" data-uk-wrap="open"><div id="uk-handle" data-uk-handle data-sheet-handle="uk" role="button" tabindex="0" aria-expanded="true" aria-label="Tuck cleaning panel to two lines"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Úklidy</span><span class="uk-sum"></span><span class="sheet-grab" aria-hidden="true"><i></i></span></div><div id="uklidy"></div></div>
+  <div id="uk-wrap" data-uk-wrap="open"><div id="uk-handle" data-uk-handle data-sheet-handle="uk" role="button" tabindex="0" aria-expanded="true" aria-label="Tuck cleaning panel to two lines"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Úklidy</span><span class="uk-sum"></span><button type="button" id="uk-zoom-reset" hidden title="Reset cleaning zoom to 100% (or double-tap an empty spot)" aria-label="Reset cleaning zoom"></button><span class="sheet-grab" aria-hidden="true"><i></i></span></div><div id="uklidy"></div></div>
   <div id="park-panel" role="dialog" aria-label="Parking" aria-hidden="true"><div id="park-handle" data-sheet-handle="park" role="button" tabindex="0" aria-label="Resize parking panel (drag) or tuck/expand (tap)"><div class="sheet-grab" aria-hidden="true"><i></i></div><div id="park-tuck"></div></div><div id="park-body"></div></div>
 </div>
 <div id="tip"></div>
@@ -253,6 +281,21 @@ function transportOf(code){const t=D.T&&D.T[code];if(t&&TR_LABEL[t[0]])return {m
 const CAR=`<svg class="car" width="12" height="7" viewBox="1.5 5.3 13 7.6" aria-hidden="true"><path d="M3.2 8.2 L5.1 5.8 h5.8 l1.9 2.4 H14 v3.1 h-1.2 a1.35 1.35 0 0 1-2.6 0 H5.8 a1.35 1.35 0 0 1-2.6 0 H2 V8.2 z" fill="${INK}"/></svg>`;
 // Stated arrival time (D.E from eta.json: code → "19:00" / "~19:00" / "23:00–01:00" / "20:00+"). Unknown → nothing shown.
 const etaOf=code=>(D.E&&D.E[code])||"";
+// Urgent-attention alerts (D.A = code → [level, type, since, note], from alerts.json via merge_alert.py).
+// Long press (≈600 ms) or double-click on the badge turns it off on this device (localStorage "alertsOff", keyed
+// code|type|since → a NEW alert on the same stay flashes again). "Warning off · Undo" toast for 4 s.
+const ALERT_OFF_KEY="alertsOff";
+let ALERT_OFF=(()=>{try{const v=JSON.parse(localStorage.getItem(ALERT_OFF_KEY)||"{}");return v&&typeof v==="object"?v:{}}catch(_){return {}}})();
+let ALERT_PRESS_AT=0;
+function alertRaw(code){const v=D.A&&D.A[code];if(!v)return null;return {code,level:v[0]==="red"?"red":"yellow",type:v[1]||"Alert",since:v[2]||"",note:v[3]||""}}
+const alertKey=a=>`${a.code}|${a.type}|${a.since}`;
+const alertIsOff=a=>!!ALERT_OFF[alertKey(a)];
+function fmtSince(iso){const d=new Date(iso);if(!iso||isNaN(d))return iso;const p={};for(const x of new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Prague",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(d))p[x.type]=x.value;return `${p.day}.${p.month} ${p.hour}:${p.minute}`}
+function alertHint(a){return `${a.level==="red"?"Extremely urgent":"Urgent"}: ${a.type}${a.note?` · ${a.note}`:""}${a.since?` · since ${fmtSince(a.since)}`:""} · long-press or double-click to turn the warning off`}
+function alertBadge(code){const a=alertRaw(code);if(!a)return "";return `<span class="alert-badge${a.level==="red"?" red":""}${alertIsOff(a)?" off":""}" role="img" data-alert="${a.level}" data-alert-code="${esc(code)}" data-alert-key="${esc(alertKey(a))}" aria-label="${esc(alertHint(a))}" title="${esc(alertHint(a))}"><span aria-hidden="true">⚠</span><span>${esc(a.type)}</span></span>`}
+function alertMini(code){const a=alertRaw(code);if(!a)return "";return `<span class="alert-mini${a.level==="red"?" red":""}${alertIsOff(a)?" off":""}" data-alert-mini="${a.level}" data-alert-key="${esc(alertKey(a))}">⚠</span>`}
+function alertCard(code){const a=alertRaw(code);if(!a)return "";const r=a.level==="red"?" red":"";const rest=[a.note,a.since?`since ${fmtSince(a.since)}`:""].filter(Boolean).join(" · ");
+  return `<div class="tip-alert${r}" data-tip-alert="${a.level}">⚠ ${a.level==="red"?"Extremely urgent":"Urgent"}: ${esc(a.type)}${alertIsOff(a)?" (warning off here)":""}</div>${rest?`<div class="tip-alert-note${r}" data-tip-alert="${a.level}">${esc(rest)}</div>`:""}`}
 const etaShort=v=>String(v).replace(/:00/g,"");
 const CLOCK=(c,sz)=>`<svg class="clk" width="${sz}" height="${sz}" viewBox="0 0 16 16" aria-hidden="true" style="flex-shrink:0;pointer-events:none"><circle cx="8" cy="8" r="6.3" fill="none" stroke="${c}" stroke-width="1.7"/><path d="M8 4.4V8l2.6 1.6" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -296,7 +339,7 @@ const L=D.L; const hb=L.filter(x=>x[1]===1).length;
         : `Aktualizace ${D.u} · ONLINE (email/export sync, not live Airbnb API)`)
     : `Aktualizace ${D.u} · OFFLINE — no Airbnb host session`;
   const MAG=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.6 L13.2 13.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>`;
-  el.innerHTML=`<span class="meta-l" title="${esc(metaTitle)}">Aktualizace ${esc(D.u)} · ${status}${lg}</span><button type="button" id="zoom-reset" hidden title="Reset zoom to 100% (or double-tap empty grid)" aria-label="Reset zoom"></button><button type="button" id="search-btn" aria-label="Search stays" aria-expanded="false" title="Search by plate or guest">${MAG}</button><div id="search-panel"><input id="search-q" type="search" placeholder="Plate, guest, or note" autocomplete="off" spellcheck="false"><div id="search-hits"></div></div>`;
+  el.innerHTML=`<span class="meta-l" title="${esc(metaTitle)}">Aktualizace ${esc(D.u)} · ${status}${lg}</span><button type="button" id="today-btn" title="Scroll to today (cleaning panel too)" aria-label="Today">Today</button><button type="button" id="alert-chip" hidden></button><button type="button" id="zoom-reset" hidden title="Reset zoom to 100% (or double-tap empty grid)" aria-label="Reset zoom"></button><button type="button" id="search-btn" aria-label="Search stays" aria-expanded="false" title="Search by plate or guest">${MAG}</button><div id="search-panel"><input id="search-q" type="search" placeholder="Plate, guest, or note" autocomplete="off" spellcheck="false"><div id="search-hits"></div></div>`;
 })();
 
 // same-day turnaround listings (checkout day == checkin day within window)
@@ -355,7 +398,7 @@ L.forEach(([name],ri)=>{
     const gl=gc<0?"?":String(gc);
     const q=(D.Q&&D.Q[code])||["n",-1,""]; const tier=q[0]; const color=TIER_BG[tier]||STAY_BAR;
     const plate=(D.P&&D.P[code])||"";
-    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
+    const t=`${guest} · ${name} · ${gl} guest${gc===1?"":"s"} · ${s} → ${e} · ${nights} night${nights===1?"":"s"} · ${code} · ${TIER_LABEL[tier]||""}${q[1]>=0?` · ${q[1]} reviews`:""}${q[2]?` · ${q[2]}`:""}${plate?` · Car: ${plate}`:""}${etaOf(code)?` · ETA ${etaOf(code)}`:""}${alertRaw(code)?` · ⚠ ${alertRaw(code).type}`:""}${D.T&&D.T[code]&&TR_LABEL[D.T[code][0]]?` · ${TR_LABEL[D.T[code][0]]}${D.T[code][1]?` ${D.T[code][1]}`:""}`:""}`;
     let inner;
     if(gc>3){
       inner=`<span class="heads">${HEAD}</span><span class="n">${gl}</span>`;
@@ -364,6 +407,7 @@ L.forEach(([name],ri)=>{
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
     if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="last-minute booking">!</span>`+inner;
+    inner=alertBadge(code)+inner;
     const trm=transportOf(code);
     if(plate||(trm&&trm.m==="car")) inner+=CAR.repeat(Math.min(2,Math.max(1,platesOf(code).length))); // two cars → two icons
     if(trm&&trm.m!=="car") inner+=TRI(trm.m,INK,10);
@@ -479,6 +523,81 @@ function markPinched(){PINCH_AT=Date.now();sc.dataset.justDragged="1";setTimeout
 applyZoom(ZOOM);
 sc.scrollLeft=Math.max(0,(todayIdx-2)*DAY_W*ZOOM);
 
+// Smooth horizontal scroll of the calendar (Today pill, week snap). Cancelled by a new call.
+let SC_ANIM=0;
+function scrollCalTo(x,ms=380){cancelAnimationFrame(SC_ANIM);const from=sc.scrollLeft,to=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,x)),t0=performance.now();
+  if(Math.abs(to-from)<1){sc.scrollLeft=to;return}
+  const step=t=>{const p=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-p,3);sc.scrollLeft=from+(to-from)*e;if(p<1)SC_ANIM=requestAnimationFrame(step);else SC_ANIM=0};SC_ANIM=requestAnimationFrame(step)}
+// "Today": today at the left edge with ~40% of yesterday visible; the cleaning panel re-couples to the calendar (today under the now-line, lists to top).
+function goToday(){
+  hideTip(); scrollCalTo((todayIdx-0.4)*DAY_W*ZOOM);
+  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;}
+  const uk=document.getElementById("uklidy");
+  if(uk){uk.querySelectorAll(".uk-list").forEach(l=>{l.scrollTop=0});const d0=uk.querySelector("[data-ukday0]");
+    if(d0&&typeof NOW_SYNC==="undefined"){uk.scrollLeft=d0.offsetLeft}}
+  sc.dispatchEvent(new Event("scroll")); // realign the cleaning strip even if the calendar is already there
+}
+document.getElementById("today-btn").addEventListener("click",goToday);
+// Alerts: chip "⚠ N" (tap → first alert), long press / double-click turns a badge off on this device, Undo toast.
+(function(){
+  const chip=document.getElementById("alert-chip");
+  document.body.insertAdjacentHTML("beforeend",`<div id="alert-toast" role="status" data-alert-toast hidden><span>Warning off ·</span><button type="button" data-alert-undo>Undo</button></div>`);
+  const toast=document.getElementById("alert-toast");
+  const byCode=new Map(D.R.map(r=>[r[0],r]));
+  let toastA=null,toastT=0;
+  function list(){return Object.keys(D.A||{}).filter(c=>byCode.has(c)).map(alertRaw).filter(a=>a&&!alertIsOff(a)).sort((x,y)=>{const rx=byCode.get(x.code),ry=byCode.get(y.code);
+    return ((rx[4]<D.t)-(ry[4]<D.t))||(x.level===y.level?0:x.level==="red"?-1:1)||rx[3].localeCompare(ry[3])})}
+  function refresh(){
+    document.querySelectorAll("[data-alert-key]").forEach(el=>el.classList.toggle("off",!!ALERT_OFF[el.dataset.alertKey]));
+    const l=list(); chip.hidden=!l.length; chip.dataset.alertChip=String(l.length);
+    chip.classList.toggle("red",l.some(a=>a.level==="red")); chip.textContent=`⚠ ${l.length}`;
+    chip.setAttribute("aria-label",`${l.length} urgent alert${l.length===1?"":"s"}: show the first`);
+    chip.title=l.map(a=>`${a.type} · ${byCode.get(a.code)[1]}`).join("\n");
+  }
+  function setOff(a,off){
+    if(off) ALERT_OFF[alertKey(a)]=Date.now(); else delete ALERT_OFF[alertKey(a)];
+    try{localStorage.setItem(ALERT_OFF_KEY,JSON.stringify(ALERT_OFF))}catch(_){}
+    refresh();
+    if(off){hideTip();toastA=a;toast.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{toast.hidden=true;toastA=null},4000)}
+  }
+  toast.querySelector("button").addEventListener("click",()=>{if(toastA)setOff(toastA,false);toast.hidden=true;toastA=null;clearTimeout(toastT)});
+  chip.addEventListener("click",()=>{const l=list();if(!l.length)return;hideTip();if(window.jumpToStay)window.jumpToStay(l[0].code)});
+  const off=el=>{const a=alertRaw(el.dataset.alertCode);if(!a)return;ALERT_PRESS_AT=Date.now();setOff(a,true)};
+  let press=null;
+  const cancel=()=>{if(press){clearTimeout(press.t);press=null}};
+  document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest(".alert-badge");cancel();if(!b||(e.pointerType==="mouse"&&e.button!==0))return;
+    press={x:e.clientX,y:e.clientY,t:setTimeout(()=>{press=null;off(b)},600)}},true);
+  document.addEventListener("pointermove",e=>{if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)cancel()},true);
+  document.addEventListener("pointerup",cancel,true);document.addEventListener("pointercancel",cancel,true);
+  document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".alert-badge"))e.preventDefault()},true);
+  document.addEventListener("dblclick",e=>{const b=e.target.closest&&e.target.closest(".alert-badge");if(!b)return;e.preventDefault();e.stopPropagation();cancel();off(b)},true);
+  // the release / click right after a long press is not a tap (no stay card)
+  document.addEventListener("click",e=>{if(ALERT_PRESS_AT&&Date.now()-ALERT_PRESS_AT<1000&&!(e.target.closest&&e.target.closest("[data-alert-toast]"))){ALERT_PRESS_AT=0;e.stopPropagation();e.preventDefault()}},true);
+  window.addEventListener("storage",e=>{if(e.key===ALERT_OFF_KEY){try{ALERT_OFF=JSON.parse(e.newValue||"{}")||{}}catch(_){ALERT_OFF={}}refresh()}});
+  refresh();
+})();
+// Month-name row: drag / swipe sideways moves by whole weeks, Monday-aligned (flick = 1 week, long drag = several). The day grid keeps free scrolling.
+(function(){
+  const monOff=(8-origin.getDay())%7; // index of the first Monday in the range
+  const W7=()=>7*DAY_W*ZOOM, base=()=>monOff*DAY_W*ZOOM;
+  const weekOf=x=>(x-base())/W7();
+  let wd=null;
+  grid.addEventListener("pointerdown",e=>{const m=e.target.closest(".months");if(!m||(e.pointerType==="mouse"&&e.button!==0))return;
+    e.stopPropagation(); cancelAnimationFrame(SC_ANIM);
+    wd={id:e.pointerId,x0:e.clientX,l0:sc.scrollLeft,moved:false,pts:[[e.clientX,e.timeStamp]],el:m}; try{m.setPointerCapture(e.pointerId)}catch(_){}});
+  grid.addEventListener("pointermove",e=>{if(!wd||e.pointerId!==wd.id)return;const dx=e.clientX-wd.x0;
+    if(!wd.moved){if(Math.abs(dx)<=6)return;wd.moved=true;sc.classList.add("dragging");hideTip()}
+    e.preventDefault(); sc.scrollLeft=wd.l0-dx; wd.pts.push([e.clientX,e.timeStamp]); while(wd.pts.length>2&&e.timeStamp-wd.pts[0][1]>100)wd.pts.shift();});
+  const wend=e=>{if(!wd||e.pointerId!==wd.id)return;const w=wd;wd=null;sc.classList.remove("dragging");if(!w.moved)return;
+    sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0);
+    const p0=w.pts[0],p1=w.pts[w.pts.length-1],dt=p1[1]-p0[1],v=dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0; // px/ms, + = finger right
+    const k0=Math.round(weekOf(w.l0)), moved=(sc.scrollLeft-w.l0)/W7(); // + = later
+    let k=Math.round(weekOf(sc.scrollLeft-v*180)); // flick projects a little further
+    if(k===k0&&(Math.abs(moved)>0.08||Math.abs(v)>0.3)) k=k0+((moved||-v)>0?1:-1);
+    scrollCalTo(base()+k*W7(),320);};
+  grid.addEventListener("pointerup",wend);grid.addEventListener("pointercancel",wend);
+})();
+
 // mouse drag-to-pan (touch uses native momentum scrolling)
 let drag=null;
 // No pointer capture on pointerdown (that retargets the tap away from the bar); capture only once a real drag starts (>5px).
@@ -508,7 +627,7 @@ function stayCard(code){
   const gl=gc<0?"?":String(gc);
   const q=(D.Q&&D.Q[c])||["n",-1,""];
   const plate=(D.P&&D.P[c])||"";
-  let h=`<div class="tip-name">${esc(guest)}</div>`;
+  let h=`<div class="tip-name">${esc(guest)}</div>`+alertCard(c);
   h+=`<div class="tip-listing">${esc(listing)}</div>`;
   h+=`<div>${esc(s)} → ${esc(e)} · ${nights} night${nights===1?"":"s"}</div>`;
   h+=`<div>${esc(gl)} guest${gc===1?"":"s"}</div>`;
@@ -529,6 +648,7 @@ function ukCard(el){
   const turn=el.dataset.turn==="1";
   let h=`<div class="tip-name">${esc(listing)} (${esc(guests)})</div>`;
   h+=`<div class="tip-listing">${esc(guest)}</div>`;
+  if(el.dataset.code) h+=alertCard(el.dataset.code);
   if(turn) h+=`<div>same-day turnaround</div>`;
   if(el.dataset.eta) h+=`<div class="tip-eta" data-tip-eta="${esc(el.dataset.eta)}">${CLOCK("#0F766E",15)}ETA ${esc(el.dataset.eta)}</div>`;
   if(el.dataset.lm==="1") h+=`<div class="tip-lm"><span class="lm-pill">!</span>${esc(LAST_MIN_TEXT.replace(/^!\s*/,""))}</div>`;
@@ -639,7 +759,7 @@ let UK_TODAY_N=null;
   const total=idx(end,start)+1;
   const todayOff=Math.max(0,idx(today,start));
   const kind={}; L.forEach(([n,k])=>kind[n]=k);
-  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta?" has-eta":""}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?" · ETA "+it.eta:"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}</div>`;
+  const row=(it,turn)=>`<div class="uk-row${turn?" turn":""}${it.eta?" has-eta":""}${alertRaw(it.code)?" has-alert":""}" data-code="${esc(it.code)}" data-listing="${esc(it.listing)}" data-guest="${esc(it.guest)}" data-guests="${esc(it.guests)}" data-turn="${turn?"1":"0"}" data-lm="${it.lm?"1":"0"}" data-plate="${esc(it.plate||"")}" data-eta="${esc(it.eta||"")}" title="${esc(it.listing+" ("+it.guests+") · "+it.guest+(it.eta?" · ETA "+it.eta:"")+(turn?" · same-day turnaround":"")+(it.lm?" · last-minute booking":""))}">${it.kind===1?LOD:DUM}${it.lm?`<span class="lm">!</span>`:""}<span class="nm">${esc(it.listing)} (${esc(it.guests)})</span>${it.plate?CARF("#111827",12):""}${it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",10)}${esc(etaShort(it.eta))}</span>`:""}${alertBadge(it.code)}</div>`;
   let html="";
   for(let i=0;i<total;i++){
     const day=addDays(start,i);
@@ -649,7 +769,7 @@ let UK_TODAY_N=null;
     const label=`${CZ_WD[day.getDay()]} ${day.getDate()}.${day.getMonth()+1}`;
     const outs=[], inns=[];
     D.R.forEach(r=>{
-      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||"",eta:r[3]===iso?etaOf(r[0]):""};
+      const item={listing:r[1],kind:kind[r[1]]??1,guests:r[6]<0?"?":String(r[6]),guest:r[2],lm:r[3]===iso&&LAST_MIN.has(r[0]),plate:(D.P&&D.P[r[0]])||"",eta:r[3]===iso?etaOf(r[0]):"",code:r[0]};
       if(r[4]===iso) outs.push(item);
       if(r[3]===iso) inns.push(item);
     });
@@ -659,7 +779,7 @@ let UK_TODAY_N=null;
     outs.forEach(it=>{ if(inns.some(x=>x.listing===it.listing)) turnSet.add(it.listing); });
     const mark=offToday===0?`<div class="uk-mark t"></div>`:offToday===1?`<div class="uk-mark m"></div>`:"";
     const nowUk=offToday===0?`<div class="nowline" id="nowUk" style="display:none"></div>`:"";
-    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?" · ETA "+it.eta:"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${esc(it.listing)}${k==="in"&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
+    const cmp=(arr,k)=>`<div class="uk-ln ${k}" data-uk-line="${k}" data-n="${arr.length}" title="${esc((k==="out"?"Odjezdy":"Příjezdy")+" ("+arr.length+"): "+(arr.map(it=>it.listing+(it.lm?" (!)":"")+(it.eta?" · ETA "+it.eta:"")).join(", ")||"—"))}">${arr.length?`<b>${arr.length}</b>`+arr.map((it,j)=>`<span${turnSet.has(it.listing)?' class="t"':""}>${j?", ":""}${it.lm?'<span class="lm" aria-label="last-minute booking">!</span>':""}${alertMini(it.code)}${esc(it.listing)}${k==="in"&&it.eta?`<span class="eta" data-uk-eta="${esc(it.eta)}">${CLOCK("#0F766E",9)}${esc(etaShort(it.eta))}</span>`:""}</span>`).join(""):"—"}</div>`;
     const [wd,dm]=label.split(" ");
     const compact=`<div class="uk-cmp" data-uk-compact="${iso}"><span class="d">${esc(wd)}</span>${cmp(outs,"out")}<span class="d">${esc(dm)}</span>${cmp(inns,"in")}</div>`;
     if(offToday===0) UK_TODAY_N=[outs.length,inns.length];
@@ -701,7 +821,9 @@ function makeSheet(o){
   const room=()=>{const shell=document.getElementById("shell").getBoundingClientRect(),app=document.getElementById("app"),ar=app.getBoundingClientRect(),pb=parseFloat(getComputedStyle(app).paddingBottom)||0;
     let last=0;for(const x of SHEETS){if(x.visible())last=Math.max(last,x.o.wrap.getBoundingClientRect().bottom)}
     return Math.max(0,shell.height-40)+Math.max(0,ar.bottom-pb-last)};
-  const maxH=()=>Math.max(o.tuckH+10,Math.min(vh()*.85,cur()+room()));
+  // never taller than the content (no empty white block under it): o.contentH() → px, or null while it can't be measured (tucked view)
+  const capC=()=>{const c=o.contentH?o.contentH():null;if(c!=null&&c>0)S.lastC=c;return S.lastC||1e9};
+  const maxH=()=>Math.max(o.tuckH+10,Math.min(vh()*.85,cur()+room(),capC()));
   S.visible=()=>o.visible?o.visible():true;
   S.height=()=>cur();
   const view=t=>{if(S.view!==t){S.view=t;o.onView(t)}};
@@ -732,7 +854,7 @@ function makeSheet(o){
     e.preventDefault();
     d.pts.push([e.clientY,e.timeStamp]);while(d.pts.length>2&&e.timeStamp-d.pts[0][1]>100)d.pts.shift();
     let h=d.h0-dy; if(h>cur())others(h);
-    h=Math.max(o.tuckH,Math.min(maxH(),h)); w.style.height=h+"px"; d.h=h; view(h<o.tuckH+30);};
+    const mx=maxH(); h=Math.max(o.tuckH,h>mx?mx+Math.min(24,(h-mx)*.25):h); w.style.height=h+"px"; d.h=Math.min(h,mx); view(h<o.tuckH+30);};
   const end=e=>{if(!d||e.pointerId!==d.id)return;const dd=d;d=null;
     if(!dd.moved){if(e.type==="pointerup"&&dd.zone==="handle")S.toggle();return}
     SHEET_DRAG_AT=Date.now();
@@ -749,6 +871,8 @@ function makeSheet(o){
   // restore
   try{const v=JSON.parse(localStorage.getItem(o.key)||"null");if(v){S.tucked=!!v.t;S.h=typeof v.h==="number"?v.h:null}else if(o.legacyTucked&&o.legacyTucked())S.tucked=true}catch(_){}
   window.addEventListener("resize",()=>{if(!S.tucked&&S.visible()&&cur()>vh()*.85+1)setH(Math.round(vh()*.85),false)});
+  /** content got shorter (zoom out, fewer cars that night) → shrink to it, so no white block remains */
+  S.fit=(anim=true)=>{if(S.tucked||!S.visible()||d)return;const mx=maxH();if(cur()>mx+1){S.h=Math.round(mx);setH(S.h,anim);save()}};
   SHEETS.push(S);
   return S;
 }
@@ -756,12 +880,58 @@ function makeSheet(o){
 const UK_SHEET=(function(){
   const w=document.getElementById("uk-wrap"), h=document.getElementById("uk-handle"), TUCK=30+3+16*2+2;
   const sum=h.querySelector(".uk-sum"); if(UK_TODAY_N) sum.textContent=`· dnes odj ${UK_TODAY_N[0]} · příj ${UK_TODAY_N[1]}`;
-  const S=makeSheet({wrap:w,handle:h,zones:[document.getElementById("uklidy")],tuckH:TUCK,key:"uklidySheet",
+  const strip=document.getElementById("uklidy");
+  const contentH=()=>{ if(w.classList.contains("tucked"))return null;
+    const sr=strip.getBoundingClientRect(), cols=strip.children; let best=0;
+    for(const col of cols){const r=col.getBoundingClientRect(); if(r.right<sr.left||r.left>sr.right)continue;
+      const list=col.querySelector(".uk-list"); if(!list||!list.firstElementChild)continue;
+      const lr=list.getBoundingClientRect(), a=list.firstElementChild.getBoundingClientRect(), b=list.lastElementChild.getBoundingClientRect();
+      best=Math.max(best,(lr.top-r.top)+(b.bottom-a.top)+3);}
+    if(!best)return null; return h.getBoundingClientRect().height+(sr.top-h.getBoundingClientRect().bottom)+parseFloat(getComputedStyle(strip).paddingTop||0)+best+2; };
+  const S=makeSheet({wrap:w,handle:h,zones:[strip],tuckH:TUCK,key:"uklidySheet",contentH,
     legacyTucked:()=>{try{return localStorage.getItem("uklidyTucked")==="1"}catch(_){return false}},
     onView:t=>{w.classList.toggle("tucked",t)},
     onState:()=>{w.dataset.ukWrap=S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?"Expand cleaning panel (tap) or drag up":"Tuck cleaning panel (tap) or drag to resize");try{localStorage.setItem("uklidyTucked",S.tucked?"1":"0")}catch(_){}}});
   if(S.tucked) S.tuck(false); else S.expand(false);
   return S;
+})();
+// Cleaning-panel zoom (independent of the calendar zoom): pinch / ctrl+wheel / Safari gestures, 0.6×–2.5×, anchored at the pinch point.
+// CSS zoom on each day column (expanded view only; the tucked two-line strip stays 1×). Double-tap an empty spot or the "NNN%" pill → 100%.
+// Remembered in localStorage "ukZoom". Taps within 400 ms of a pinch are ignored; the sheet then shrinks to the content if needed.
+const UKZ={z:1,at:0,MIN:.6,MAX:2.5,KEY:"ukZoom",COL:118,GAP:4};
+(function(){
+  const uk=document.getElementById("uklidy"), wrap=document.getElementById("uk-wrap"), pill=document.getElementById("uk-zoom-reset");
+  try{const z=parseFloat(localStorage.getItem(UKZ.KEY));if(z>=UKZ.MIN&&z<=UKZ.MAX)UKZ.z=z}catch(_){}
+  const apply=z=>{UKZ.z=z;uk.style.setProperty("--ukz",Math.abs(z-1)<.001?"1":String(z));uk.dataset.ukZoom=String(Math.round(z*100)/100);pill.hidden=Math.abs(z-1)<.01;pill.textContent=Math.round(z*100)+"%"};
+  const pitch=z=>UKZ.COL*z+UKZ.GAP;
+  const colAt=sx=>{const r=uk.getBoundingClientRect();return (uk.scrollLeft+sx-r.left)/pitch(UKZ.z)};
+  const zoomAt=(z,c,sx)=>{z=Math.min(UKZ.MAX,Math.max(UKZ.MIN,z));const r=uk.getBoundingClientRect();apply(z);uk.scrollLeft=c*pitch(z)-(sx-r.left)};
+  let saveT=0; const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(UKZ.KEY,String(Math.round(UKZ.z*1000)/1000))}catch(_){}},120)};
+  const settle=()=>{save();requestAnimationFrame(()=>{if(typeof UK_SHEET!=="undefined")UK_SHEET.fit()})};
+  const mark=()=>{UKZ.at=Date.now()};
+  UKZ.reset=(sx)=>{const r=uk.getBoundingClientRect();if(sx==null)sx=r.left+r.width/2;zoomAt(1,colAt(sx),sx);settle()};
+  let pin=null;
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1, midx=t=>(t[0].clientX+t[1].clientX)/2;
+  uk.addEventListener("touchstart",e=>{if(e.touches.length!==2||wrap.classList.contains("tucked"))return;e.preventDefault();hideTip();const x=midx(e.touches);pin={d0:dist(e.touches),z0:UKZ.z,c:colAt(x),raf:0,last:null};mark()},{passive:false});
+  uk.addEventListener("touchmove",e=>{if(!pin||e.touches.length<2)return;e.preventDefault();pin.last={z:pin.z0*dist(e.touches)/pin.d0,x:midx(e.touches)};mark();
+    if(!pin.raf)pin.raf=requestAnimationFrame(()=>{const p=pin;if(!p||!p.last)return;p.raf=0;zoomAt(p.last.z,p.c,p.last.x)})},{passive:false});
+  const tend=e=>{if(!pin||e.touches.length>=2)return;if(pin.raf){cancelAnimationFrame(pin.raf);if(pin.last)zoomAt(pin.last.z,pin.c,pin.last.x)}pin=null;mark();settle()};
+  uk.addEventListener("touchend",tend);uk.addEventListener("touchcancel",tend);
+  uk.addEventListener("wheel",e=>{if(!e.ctrlKey||wrap.classList.contains("tucked"))return;e.preventDefault();hideTip();const dy=Math.max(-40,Math.min(40,e.deltaY*(e.deltaMode===1?16:1)));zoomAt(UKZ.z*Math.exp(-dy*.01),colAt(e.clientX),e.clientX);mark();settle()},{passive:false});
+  let gz=null;
+  uk.addEventListener("gesturestart",e=>{e.preventDefault();if(pin||wrap.classList.contains("tucked"))return;gz={z0:UKZ.z,c:colAt(e.clientX)}});
+  uk.addEventListener("gesturechange",e=>{e.preventDefault();if(pin||!gz)return;zoomAt(gz.z0*e.scale,gz.c,e.clientX);mark()});
+  uk.addEventListener("gestureend",e=>{e.preventDefault();if(gz){gz=null;settle()}});
+  // a pinch never counts as a tap on a row
+  uk.addEventListener("click",e=>{if(Date.now()-UKZ.at<400){e.stopPropagation();e.preventDefault()}},true);
+  // double-tap an empty spot → 100%
+  let last=null;
+  uk.addEventListener("click",e=>{if(e.target.closest(".uk-row")){last=null;return}const t=Date.now();
+    if(last&&t-last.t<350&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<30){last=null;if(Math.abs(UKZ.z-1)>.01)UKZ.reset(e.clientX)}else last={t,x:e.clientX,y:e.clientY}});
+  // the pill sits on the sheet handle: keep its taps away from the sheet drag / toggle
+  pill.addEventListener("pointerdown",e=>e.stopPropagation());
+  pill.addEventListener("click",e=>{e.stopPropagation();UKZ.reset()});
+  apply(UKZ.z);
 })();
 // Calendar ↔ uklidy now-line coupling: uklidy follows the calendar so both red lines share one screen x.
 // Sliding uklidy decouples it; when a slide ends within half a column of the calendar line it snaps back and re-couples.
@@ -839,7 +1009,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   const curNight=()=>day||pragueParts().ymd;
   const addYmd=(ymd,n)=>{const d=new Date(`${ymd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
   /** Carousel step: previous (-1) / next (+1) night; the title, drawing and unknown note follow. Returns false at the range ends. */
-  function shiftNight(dir){const nx=addYmd(curNight(),dir);if(nx<D.a||nx>D.b)return false;day=nx;render();return true}
+  function shiftNight(dir){const nx=addYmd(curNight(),dir);if(nx<D.a||nx>D.b)return false;day=nx;render();if(typeof PSHEET!=="undefined")requestAnimationFrame(()=>PSHEET.fit());return true}
   function render(){
     // only stays with a known plate (D.P) are cars; the rest are "car unknown" and never counted
     const info=stays(), all=day?stays(day).tonight:mode==="tonight"?info.tonight:info.now, list=all.flatMap(x=>platesOf(x.code).map((pl,j)=>({...x,plate:pl,car:j}))), n=list.length, unknown=all.filter(x=>!x.plate).length, over=Math.max(0,n-SPOTS), pct=Math.round(n/SPOTS*100);
@@ -857,7 +1027,10 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
       `<div class="pstays">${n?list.map((x,i)=>`<div class="pstay${i>=SPOTS?" ov":""}" data-park-stay="${esc(x.code)}"><span class="no">${i<SPOTS?i+1:"+"}</span><span class="ls">${esc(x.listing)}</span><span class="gs">${esc(x.guest)}</span><span class="pl" style="font-family:${PMONO}">${CARF("#111827",12)}${esc(x.plate.toUpperCase())}</span></div>`).join(""):`<div class="pnote">No known cars.</div>`}</div>`;
   }
   // bottom sheet: P button / capsule / P cell open it expanded; the handle drags or tucks it (tucked = title + N/12 · %); P button closes
-  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,hAxis:true,
+  const pContentH=()=>{const body=document.getElementById("park-body"),hd=document.getElementById("park-handle");if(panel.classList.contains("tucked")||!body.firstElementChild)return null;
+    const cs=getComputedStyle(body),a=body.firstElementChild.getBoundingClientRect(),b=body.lastElementChild.getBoundingClientRect();
+    return hd.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(b.bottom-a.top)+2};
+  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),tuckH:20+28+2,key:"parkSheet",natCap:.5,hAxis:true,contentH:pContentH,
     visible:()=>panel.classList.contains("open"),
     onView:t=>panel.classList.toggle("tucked",t),
     onState:()=>{panel.dataset.parkSheet=PSHEET.tucked?"tucked":"open";savePark()}});
@@ -925,6 +1098,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     btn.setAttribute("aria-expanded",on?"true":"false");
     if(on){input.focus();input.select();}
   }
+  window.jumpToStay=c=>jumpTo(c);
   function jumpTo(code){
     document.querySelectorAll(".bar.hit").forEach(el=>el.classList.remove("hit"));
     const bar=document.getElementById("bar-"+code);
