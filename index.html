@@ -1614,8 +1614,8 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     const c=e.target.closest("[data-tc]");if(!c||c.disabled||!CAN)return;const x=P[+c.dataset.i];if(!x)return;const k=c.dataset.tc;
     if(k==="set"){const cur=val(x,"set");if(!num(cur))return;queue(x,"set",Math.min(28,Math.max(5,Math.round((cur+ +c.dataset.d)*2)/2)))}
     else if(k==="on")queue(x,"on",!(val(x,"on")===true));else if(k==="mode")queue(x,"mode",c.dataset.v);render()});
-  document.addEventListener("pointerdown",e=>{if(!panel.classList.contains("open"))return;if(e.target.closest("#tech-panel,#tech-btn"))return;setOpen(false)});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("open"))setOpen(false)});
+  document.addEventListener("pointerdown",e=>{if(!panel.classList.contains("open"))return;if(e.target.closest("#tech-panel,#tech-btn,#tech-pin"))return;setOpen(false)});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&panel.classList.contains("open")){const pd=document.getElementById("tech-pin");if(pd&&!pd.hidden)return;setOpen(false)}});
   addEventListener("resize",()=>{if(panel.classList.contains("open"))place()});
 })();
 
