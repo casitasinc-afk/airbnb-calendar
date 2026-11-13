@@ -128,6 +128,8 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .alert-badge.off,.alert-mini.off{display:none!important}
 .bar .bar-inner .alert-badge,.uk-row > .alert-badge{pointer-events:auto}
 .uk-row > .alert-badge{font-size:9.5px}
+.bar > .alert-badge.at-today{position:absolute;top:50%;margin-top:-9px;height:18px;min-width:22px;justify-content:center;font-size:11px;transform:translateX(-50%);z-index:4;pointer-events:auto}
+.bar > .alert-badge.at-today > span+span{display:none}
 .uk-row.has-alert{flex-wrap:wrap;row-gap:0}
 .uk-row.has-alert .nm{flex:0 1 auto}
 .alert-mini{color:#A16207;font-weight:800;margin-right:1px}
@@ -476,12 +478,17 @@ L.forEach(([name],ri)=>{
       inner=`<span class="n">${gl}</span><span class="heads">${HEAD.repeat(n)}</span>`;
     }
     if(LAST_MIN.has(code)) inner=`<span class="lm" aria-label="${T("last_min_short")}">!</span>`+inner;
-    inner=alertBadge(code)+inner;
+    // flashing alert: on TODAY's cell of the row while the guest is in-house (arrived before today, leaves today or later); otherwise at the stay start
+    let abs="";
+    if(alertRaw(code)){const si=idx(parse(s),origin),ei=idx(parse(e),origin);
+      if(si<todayIdx&&ei>=todayIdx){const segL=todayIdx*DAY_W,segR=Math.min((todayIdx+1)*DAY_W,left+w),cx=Math.round((Math.max(segL,left)+segR)/2-left);
+        abs=alertBadge(code).replace('<span class="alert-badge',`<span style="left:${cx}px" data-alert-today class="alert-badge at-today`)}
+      else inner=alertBadge(code)+inner}
     const trm=transportOf(code);
     if(plate||(trm&&trm.m==="car")) inner+=CAR.repeat(Math.min(2,Math.max(1,platesOf(code).length))); // two cars → two icons
     if(trm&&trm.m!=="car") inner+=TRI(trm.m,INK,10);
     inner+=`<span class="g">${esc(guest)}</span>`;
-    g+=`<div class="bar${tier[0]==="c"?" judged "+tier:""}" id="bar-${esc(code)}" data-code="${esc(code)}" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px"><div class="bar-inner" style="background:${color}">${inner}</div></div>`;
+    g+=`<div class="bar${tier[0]==="c"?" judged "+tier:""}" id="bar-${esc(code)}" data-code="${esc(code)}" data-t="${esc(t)}" title="${esc(t)}" style="left:${left}px;width:${w}px"><div class="bar-inner" style="background:${color}">${inner}</div>${abs}</div>`;
   });
   g+=`</div>`;
 });
@@ -912,7 +919,7 @@ function makeSheet(o){
   S.visible=()=>!S.gone&&(o.visible?o.visible():true);
   S.height=()=>cur();
   const view=t=>{if(S.view!==t){S.view=t;o.onView(t)}};
-  const save=()=>{try{localStorage.setItem(o.key,JSON.stringify({t:S.tucked?1:0,h:S.h,g:S.gone?1:0}))}catch(_){}};
+  const save=()=>{try{localStorage.setItem(o.key,JSON.stringify({t:S.tucked?1:0,h:S.h,g:S.gone?1:0,a:S.auto?1:0}))}catch(_){}};
   function setH(px,anim){ // px or null = natural height
     clearTimeout(S.timer); const from=cur();
     w.style.transition="none";
@@ -927,8 +934,9 @@ function makeSheet(o){
   const unGone=()=>{if(S.gone){S.gone=false;w.classList.remove("sheet-gone");updDock()}};
   const others=(need,lim=.85)=>{for(const x of SHEETS){if(x!==S&&!x.tucked&&x.visible()&&need+x.height()>vh()*lim)x.tuck()}};
   S.tuck=(anim=true)=>{unGone();S.tucked=true;view(true);setH(o.tuckH,anim);save();o.onState&&o.onState()};
-  S.expand=(anim=true,h,lim)=>{unGone();S.tucked=false;view(false);if(h!=null)S.h=h;const t=S.h==null?null:Math.min(S.h,maxH());others(t==null?vh()*(o.natCap||.34):t,lim);setH(t,anim);save();o.onState&&o.onState()};
-  S.toggle=()=>{hideTip();S.tucked?S.expand():S.tuck()};
+  // o.defH(): default awake height computed from the layout (calendar sheet: low enough that the day's ÚKLIDY rows show above it); tap/wake/swap use it, a drag sets a manual height
+  S.expand=(anim=true,h,lim)=>{if(h==null&&o.defH){const a=o.defH();if(a!=null){if(a<o.tuckH+24){S.auto=true;S.tuck(anim);return}h=a;S.auto=true}}else if(h!=null)S.auto=false;unGone();S.tucked=false;view(false);if(h!=null)S.h=h;const t=S.h==null?null:Math.min(S.h,maxH());others(t==null?vh()*(o.natCap||.34):t,lim);setH(t,anim);save();o.onState&&o.onState()};
+  S.toggle=()=>{hideTip();if(!S.tucked)return S.tuck();const a=o.defH?o.defH():null;S.expand(true,a!=null&&a<o.tuckH+24?Math.round(vh()*.4):undefined)}; // too many tasks for the fit → a tap still opens it
   /** fully tucked: slide down to 0 and leave only the dock tab */
   S.hide=(anim=true)=>{hideTip();S.tucked=true;view(true);clearTimeout(S.timer);w.classList.add("sized");w.style.flex="0 0 auto";
     const fin=()=>{w.style.transition="none";w.style.height="0px";w.classList.add("sheet-gone")};
@@ -959,16 +967,19 @@ function makeSheet(o){
     if(h<o.tuckH*.6||(v>0.5&&(dd.h0<=o.tuckH+6||h<o.tuckH))) S.hide(); // past the low point / flick down from the strip → gone (tab only)
     else if(v>0.5||h<o.tuckH+Math.max(40,vh()*.12)) S.tuck();
     else if(v<-0.5) S.expand(true,h<half-10?half:Math.round(mx));
-    else S.expand(true,Math.round(h));};
+    else S.expand(true,Math.round(h));
+    if(o.defH)S.auto=false;};
   const hook=(el,zone)=>{el.addEventListener("pointerdown",e=>{if(o.enabled&&!o.enabled())return;if(zone!=="handle"&&!S.tucked)return;begin(e,zone)});el.addEventListener("pointermove",move);el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end)};
   hook(o.handle,"handle"); (o.zones||[]).forEach(z=>hook(z,"zone"));
   // a drag never counts as a tap on anything inside the sheet
   w.addEventListener("click",e=>{if(Date.now()-SHEET_DRAG_AT<400){e.stopPropagation();e.preventDefault()}},true);
   o.handle.addEventListener("keydown",e=>{if(o.enabled&&!o.enabled())return;if(e.key==="Enter"||e.key===" "){e.preventDefault();S.toggle()}});
   // restore
-  try{const v=JSON.parse(localStorage.getItem(o.key)||"null");if(v){S.tucked=!!v.t;S.h=typeof v.h==="number"?v.h:null;S.gone=!!v.g}else if(o.legacyTucked&&o.legacyTucked())S.tucked=true}catch(_){}
+  try{const v=JSON.parse(localStorage.getItem(o.key)||"null");if(v){S.tucked=!!v.t;S.h=typeof v.h==="number"?v.h:null;S.gone=!!v.g;S.auto=!!v.a}else if(o.legacyTucked&&o.legacyTucked())S.tucked=true}catch(_){}
   window.addEventListener("resize",()=>{if(!S.tucked&&S.visible()&&cur()>vh()*.85+1)setH(Math.round(vh()*.85),false)});
   /** content got shorter (zoom out, fewer cars that night) → shrink to it, so no white block remains */
+  /** auto-sized (not dragged by hand) → recompute the default height (ÚKLIDY day scrolled, zoom, resize) */
+  S.refit=()=>{if(o.defH&&S.auto&&!S.gone&&S.visible()&&!d){const a=o.defH();if(a==null)return;if(S.tucked){if(a>=o.tuckH+24)S.expand(true)}else if(Math.abs(a-cur())>3)S.expand(true)}};
   S.fit=(anim=true)=>{if(S.tucked||!S.visible()||d)return;const mx=maxH();if(cur()>mx+1){S.h=Math.round(mx);setH(S.h,anim);save()}};
   SHEETS.push(S);
   return S;
@@ -985,7 +996,7 @@ const UK_SHEET=(function(){
       const lr=list.getBoundingClientRect(), a=list.firstElementChild.getBoundingClientRect(), b=list.lastElementChild.getBoundingClientRect();
       best=Math.max(best,(lr.top-r.top)+(b.bottom-a.top)+3);}
     if(!best)return null; return h.getBoundingClientRect().height+(sr.top-h.getBoundingClientRect().bottom)+parseFloat(getComputedStyle(strip).paddingTop||0)+best+2; };
-  const S=makeSheet({wrap:w,handle:h,zones:[strip],tuckH:TUCK,key:"uklidySheet",contentH,label:T("uk_title"),tabNote:()=>UK_TODAY_N?`${UK_TODAY_N[0]}/${UK_TODAY_N[1]}`:"",
+  const S=makeSheet({wrap:w,handle:h,zones:[strip],tuckH:TUCK,key:"uklidySheet",contentH,needH:()=>contentH()??(h.getBoundingClientRect().height+50),label:T("uk_title"),tabNote:()=>UK_TODAY_N?`${UK_TODAY_N[0]}/${UK_TODAY_N[1]}`:"",
     legacyTucked:()=>{try{return localStorage.getItem("uklidyTucked")==="1"}catch(_){return false}},
     visible:()=>!SWAP.on, enabled:()=>!SWAP.on, onOverTop:()=>swapPanels(true),
     onView:t=>{w.classList.toggle("tucked",t)},
@@ -995,17 +1006,25 @@ const UK_SHEET=(function(){
   h.title=T("swap_hint");
   return S;
 })();
+const CAL_FIT_GAP=26;
 // Calendar as a bottom sheet (swapped arrangement only): same behaviour the ÚKLIDY sheet has; drag it all the way up to swap back.
 const CAL_SHEET=(function(){
   const w=document.getElementById("cal-wrap"), h=document.getElementById("cal-handle"), shell=document.getElementById("shell");
   document.getElementById("cal-title").textContent=T("cal_tab");
   const TUCK=30+(document.querySelector("#grid .head, #grid .months")?0:0)+66;
-  const S=makeSheet({wrap:w,handle:h,zones:[shell],tuckH:TUCK,key:"calSheet",natCap:.45,label:T("cal_tab"),
+  // default awake height: everything below ÚKLIDY's tasks (+ white space CAL_FIT_GAP), down to the bottom of the room above parking
+  const defH=()=>{if(!SWAP.on||typeof UK_SHEET==="undefined")return null;const uw=document.getElementById("uk-wrap"),app=document.getElementById("app"),cs=getComputedStyle(app);
+    const gap=parseFloat(cs.rowGap)||0;let bottom=app.getBoundingClientRect().bottom-(parseFloat(cs.paddingBottom)||0);
+    const pk=document.getElementById("park-panel");if(pk&&getComputedStyle(pk).display!=="none"){const r=pk.getBoundingClientRect();if(r.height>0)bottom-=r.height+gap}
+    const need=UK_SHEET.o.needH();if(!need)return null;
+    return Math.round(bottom-(uw.getBoundingClientRect().top+need+CAL_FIT_GAP)-gap)};
+  const S=makeSheet({wrap:w,handle:h,zones:[shell],tuckH:TUCK,key:"calSheet",natCap:.45,label:T("cal_tab"),defH,
     contentH:()=>w.classList.contains("tucked")?null:h.getBoundingClientRect().height+shell.scrollHeight+2,
     visible:()=>SWAP.on, enabled:()=>SWAP.on, onOverTop:()=>swapPanels(false),
     onView:t=>{w.classList.toggle("tucked",t)},
     onState:()=>{w.dataset.calWrap=S.gone?"gone":S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?T("cal_expand"):T("cal_tuck"))}});
-  if(SWAP.on){if(S.gone)S.hide(false);else if(S.tucked)S.tuck(false);else S.expand(false)}
+  if(SWAP.on){if(S.gone)S.hide(false);else if(S.tucked&&!S.auto)S.tuck(false);else S.expand(false)}
+  {let t=0;const re=()=>{clearTimeout(t);t=setTimeout(()=>S.refit(),180)};document.getElementById("uklidy").addEventListener("scroll",re,{passive:true});window.addEventListener("resize",re);window.addEventListener("load",re);if(document.fonts)document.fonts.ready.then(re)}
   return S;
 })();
 /** Swap the main view and the bottom sheet (animated: both panels slide from where they were). */
@@ -1017,7 +1036,7 @@ function swapPanels(on){
   for(const w of [cw,uw]){w.style.transition="none";w.style.height="";w.style.flex="";w.style.transform="";w.classList.remove("sized","tucked","sheet-gone")}
   document.body.classList.toggle("swapped",on);
   const vh=window.innerHeight;
-  if(on){uw.dataset.ukWrap="main";uh.removeAttribute("aria-expanded");uh.setAttribute("aria-label",T("uk_title"));CAL_SHEET.gone=false;CAL_SHEET.expand(false,Math.round(vh*.4))}
+  if(on){uw.dataset.ukWrap="main";uh.removeAttribute("aria-expanded");uh.setAttribute("aria-label",T("uk_title"));CAL_SHEET.gone=false;CAL_SHEET.expand(false)}
   else{cw.dataset.calWrap="main";UK_SHEET.gone=false;UK_SHEET.expand(false,Math.round(vh*.4))}
   updDock();
   for(const [w,a] of r0){const b=w.getBoundingClientRect(),dy=a.top-b.top;if(Math.abs(dy)<1)continue;
@@ -1042,7 +1061,7 @@ const UKZ={z:1,at:0,MIN:.6,MAX:2.5,KEY:"ukZoom",COL:118,GAP:4};
   const zoomAt=(z,c,sx)=>{z=Math.min(UKZ.MAX,Math.max(UKZ.MIN,z));apply(z);const cols=uk.children,i=Math.max(0,Math.min(cols.length-1,Math.floor(c)));if(!cols[i])return;
     const b=cols[i].getBoundingClientRect();uk.scrollLeft+=b.left+(c-i)*(b.width+UKZ.GAP)-sx};
   let saveT=0; const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(UKZ.KEY,String(Math.round(UKZ.z*1000)/1000))}catch(_){}},120)};
-  const settle=()=>{save();requestAnimationFrame(()=>{if(typeof UK_SHEET!=="undefined")UK_SHEET.fit()})};
+  const settle=()=>{save();requestAnimationFrame(()=>{if(typeof UK_SHEET!=="undefined")UK_SHEET.fit();if(typeof CAL_SHEET!=="undefined")CAL_SHEET.refit()})};
   const mark=()=>{UKZ.at=Date.now()};
   UKZ.reset=(sx)=>{const r=uk.getBoundingClientRect();if(sx==null)sx=r.left+r.width/2;zoomAt(1,colAt(sx),sx);settle()};
   let pin=null;
