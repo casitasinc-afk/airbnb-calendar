@@ -1190,14 +1190,16 @@ let UK_TODAY_N=null;
 const SHEETS=[]; let SHEET_DRAG_AT=0;
 const UP_CHEV='<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 6.5 5 3.5 8 6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 // Rotatable panels (localStorage "cal.swap" = "1": ÚKLIDY is the main view and the calendar the bottom sheet).
-const SWAP={on:false}, SWAP_PX=60;
+const SWAP={on:false,calMax:false}, SWAP_PX=60;
+/** t180u: calendar maximized (normal arrangement, ÚKLIDY tucked into its dock button by the Kalendář button); "cal.max" */
+function setCalMax(v){SWAP.calMax=!!v;try{localStorage.setItem("cal.max",v?"1":"0")}catch(_){}}
 /** the sheet top must be dragged into the top ~22% of the screen (and past its max height) to swap */
 const swapAt=mx=>Math.max(mx+SWAP_PX,window.innerHeight*.78);
-try{SWAP.on=localStorage.getItem("cal.swap")==="1"}catch(_){}
+try{SWAP.on=localStorage.getItem("cal.swap")==="1";SWAP.calMax=!SWAP.on&&localStorage.getItem("cal.max")==="1"}catch(_){}
 document.body.classList.toggle("swapped",SWAP.on);
 function updDock(){const dk=document.getElementById("sheet-dock");if(!dk)return;const g=SHEETS.filter(x=>x.gone&&(x.o.visible?x.o.visible():true));
   dk.innerHTML=g.map(x=>`<button type="button" data-sheet-tab="${x.o.key}" aria-label="${esc(T("dock_show",x.o.label))}">${UP_CHEV}${x.o.label}${x.o.tabNote?`<span class="n">${esc(x.o.tabNote())}</span>`:""}</button>`).join("");dk.hidden=!g.length}
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-sheet-tab]");if(!b)return;const x=SHEETS.find(s=>s.o.key===b.dataset.sheetTab);if(x){e.preventDefault();if(x.o.key==="calSheet"&&SWAP.on){swapPanels(false);return}x.wake()}});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-sheet-tab]");if(!b)return;const x=SHEETS.find(s=>s.o.key===b.dataset.sheetTab);if(x){e.preventDefault();if(x.o.key==="calSheet"&&SWAP.on){swapPanels(false,true);return}if(x.o.key==="uklidySheet"&&SWAP.calMax){swapPanels(true);return}x.wake()}});
 function makeSheet(o){
   const S={tucked:false,gone:false,h:null,view:null,timer:0,o}, EASE="cubic-bezier(.32,.72,0,1)", MS=300, w=o.wrap;
   const vh=()=>window.innerHeight, cur=()=>w.getBoundingClientRect().height;
@@ -1292,9 +1294,10 @@ const UK_SHEET=(function(){
     legacyTucked:()=>{try{return localStorage.getItem("uklidyTucked")==="1"}catch(_){return false}},
     visible:()=>!SWAP.on, enabled:()=>!SWAP.on, onOverTop:()=>swapPanels(true), flickSwap:true,
     onView:t=>{w.classList.toggle("tucked",t)},
-    onState:()=>{w.dataset.ukWrap=S.gone?"gone":S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?T("uk_expand"):T("uk_tuck"));try{localStorage.setItem("uklidyTucked",S.tucked?"1":"0")}catch(_){}}});
+    onState:()=>{if(!S.gone&&SWAP.calMax)setCalMax(false);w.dataset.ukWrap=S.gone?"gone":S.tucked?"tucked":"open";h.setAttribute("aria-expanded",S.tucked?"false":"true");h.setAttribute("aria-label",S.tucked?T("uk_expand"):T("uk_tuck"));try{localStorage.setItem("uklidyTucked",S.tucked?"1":"0")}catch(_){}}});
   if(SWAP.on){w.classList.remove("tucked");w.dataset.ukWrap="main";h.removeAttribute("aria-expanded");h.setAttribute("aria-label",T("uk_title"))}
   else if(S.gone) S.hide(false); else if(S.tucked) S.tuck(false); else S.expand(false);
+  if(SWAP.calMax&&!S.gone)setCalMax(false);
   h.title=T(SWAP.on?"unswap_hint":"swap_hint");
   // t176u: while ÚKLIDY is on top (maximized), a swipe down on its swipe line brings the calendar back (Enter too)
   {let p=null;const zp=document.getElementById("uk-zoom-reset");
@@ -1328,8 +1331,10 @@ const CAL_SHEET=(function(){
   return S;
 })();
 /** Swap the main view and the bottom sheet (animated: both panels slide from where they were). */
-function swapPanels(on){
-  if(on===SWAP.on)return; hideTip();
+// t180u: swapPanels(false,true) = the Kalendář button: the calendar comes back maximized on top and ÚKLIDY waits in its dock button
+// (tapping "Úklidy" there swaps again = ÚKLIDY maximized); swapPanels(false) = the normal split default (swipe the ÚKLIDY line down)
+function swapPanels(on,calMax){
+  if(on===SWAP.on)return; hideTip(); setCalMax(!on&&!!calMax);
   const cw=document.getElementById("cal-wrap"), uw=document.getElementById("uk-wrap"), uh=document.getElementById("uk-handle");
   const r0=new Map([[cw,cw.getBoundingClientRect()],[uw,uw.getBoundingClientRect()]]);
   const scEl=document.getElementById("scroller"); if(on)SWAP.calX=scEl.scrollLeft; // t176u: the calendar keeps its scroll while tucked in its button
@@ -1337,8 +1342,8 @@ function swapPanels(on){
   for(const w of [cw,uw]){w.style.transition="none";w.style.height="";w.style.flex="";w.style.transform="";w.classList.remove("sized","tucked","sheet-gone")}
   document.body.classList.toggle("swapped",on);
   const vh=window.innerHeight;
-  if(on){uw.dataset.ukWrap="main";uh.removeAttribute("aria-expanded");uh.setAttribute("aria-label",T("uk_title"));CAL_SHEET.gone=false;CAL_SHEET.hide(false)}
-  else{cw.dataset.calWrap="main";CAL_SHEET.gone=false;UK_SHEET.gone=false;UK_SHEET.expand(false,Math.round(vh*.4))}
+  if(on){uw.dataset.ukWrap="main";uh.removeAttribute("aria-expanded");uh.setAttribute("aria-label",T("uk_title"));UK_SHEET.gone=false;CAL_SHEET.gone=false;CAL_SHEET.hide(false)}
+  else{cw.dataset.calWrap="main";CAL_SHEET.gone=false;UK_SHEET.gone=false;if(calMax)UK_SHEET.hide(false);else UK_SHEET.expand(false,Math.round(vh*.4))}
   uh.title=T(on?"unswap_hint":"swap_hint");
   if(!on&&SWAP.calX!=null){const x=SWAP.calX;scEl.scrollLeft=x;requestAnimationFrame(()=>{scEl.scrollLeft=x;scEl.dispatchEvent(new Event("scroll"))})}
   if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;requestAnimationFrame(()=>NOW_SYNC.realign&&NOW_SYNC.realign())}
