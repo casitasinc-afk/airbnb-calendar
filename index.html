@@ -163,12 +163,12 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar > .alert-badge.at-today.red{--bg1:#DC2626;--bg2:#F87171}
 @keyframes alertFlashSolid{from{background:var(--bg1);box-shadow:0 0 0 2px var(--glow),0 0 9px var(--glow)}to{background:var(--bg2);box-shadow:0 0 0 0 transparent}}
 .uk-row.has-alert{flex-wrap:wrap;row-gap:0}
-#uk-alerts{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:4px 6px 3px;max-height:104px;overflow-y:auto}
+#uk-alerts{flex-shrink:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:4px 6px 3px;max-height:104px;overflow-y:auto}
 #uk-wrap.tucked #uk-alerts{display:none}
 #uk-alerts>div{max-width:100%}
 #uk-alerts>div:not(:has(.alert-badge:not(.off))){display:none}
 #uk-alerts:not(:has(.alert-badge:not(.off))){display:none}
-#uk-alerts .alert-badge{height:auto;min-height:20px;max-width:100%;padding:2px 8px;font-size:11.5px;line-height:1.2;white-space:normal;text-align:left}
+#uk-alerts .alert-badge{height:auto;min-height:20px;max-width:100%;padding:2px 8px;font-size:11.5px;line-height:1.2;white-space:normal;text-align:center;justify-content:center}
 .tip-orig,.aa-orig{display:block;color:#6B7280;font-style:italic;font-size:.92em}
 .uk-row.has-alert .nm{flex:0 1 auto}
 .alert-mini{color:#A16207;font-weight:800;margin-right:1px}
@@ -411,7 +411,7 @@ body.swapped #uk-handle>svg,body.swapped #uk-handle .sheet-grab{display:none}
 #tech-panel .tp-pend{font-size:10.5px;color:#1D4ED8;font-weight:700}
 #tech-panel .tp-src{font-size:11px;color:#9CA3AF;text-align:center;margin-top:10px}
 #tech-panel .tp-back{border:0;background:none;color:#1D4ED8;font:700 12.5px system-ui,sans-serif;cursor:pointer;padding:6px 0 2px}
-#tech-panel .tp-a{display:grid;grid-template-columns:22px minmax(0,1fr);gap:1px 8px;padding:7px 6px;border-bottom:1px solid #F1F2F4}
+#tech-panel .tp-a{display:grid;grid-template-columns:22px minmax(0,max-content);justify-content:center;text-align:center;gap:1px 8px;padding:7px 6px;border-bottom:1px solid #F1F2F4}
 #tech-panel .tp-a b{font-size:13px}
 #tech-panel .tp-a small{grid-column:2;color:#6B7280;font-size:11px}
 #tech-panel .tp-a .pt{grid-column:2;font-weight:800;font-size:12.5px;color:#92400E}
