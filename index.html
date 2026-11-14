@@ -211,8 +211,8 @@ body.swapped #uk-handle{cursor:ns-resize!important}
 /* t177u: parking rows = listing · guest · stay progress bar · plate (grid, no dates) */
 #park-panel .pstays{display:grid;grid-template-columns:18px max-content max-content 56px max-content;column-gap:8px;row-gap:1px;justify-content:start;align-items:center}
 #park-panel .pstays>.pnote{grid-column:1/-1}
-#park-panel .pstay{display:contents}
-#park-panel .pstay.ov>*{color:#BE123C}
+#park-panel .pstays>.pstay{display:contents}
+#park-panel .pstays>.pstay.ov>*{color:#BE123C}
 #park-panel .pprog{display:block;width:56px;height:6px;border-radius:999px;background:#DBEAFE;overflow:hidden}
 #park-panel .pprog i{display:block;height:100%;background:#2563EB;border-radius:999px}
 #park-panel .ph{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;font-weight:700;font-size:13px}
@@ -821,7 +821,7 @@ function scrollCalTo(x,ms=380){cancelAnimationFrame(SC_ANIM);const from=sc.scrol
 // "Today": today at the left edge with ~40% of yesterday visible; the cleaning panel re-couples to the calendar (today under the now-line, lists to top).
 function goToday(){
   hideTip(); scrollCalTo((todayIdx-0.4)*DAY_W*ZOOM);
-  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;}
+  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;NOW_SYNC.home=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,(todayIdx-0.4)*DAY_W*ZOOM));}
   const uk=document.getElementById("uklidy");
   if(uk){uk.querySelectorAll(".uk-list").forEach(l=>{l.scrollTop=0});const d0=uk.querySelector("[data-ukday0]");
     if(d0&&typeof NOW_SYNC==="undefined"){uk.scrollLeft=d0.offsetLeft}}
@@ -1328,6 +1328,7 @@ function swapPanels(on){
   if(on===SWAP.on)return; hideTip();
   const cw=document.getElementById("cal-wrap"), uw=document.getElementById("uk-wrap"), uh=document.getElementById("uk-handle");
   const r0=new Map([[cw,cw.getBoundingClientRect()],[uw,uw.getBoundingClientRect()]]);
+  const scEl=document.getElementById("scroller"); if(on)SWAP.calX=scEl.scrollLeft; // t176u: the calendar keeps its scroll while tucked in its button
   SWAP.on=on; try{localStorage.setItem("cal.swap",on?"1":"0")}catch(_){}
   for(const w of [cw,uw]){w.style.transition="none";w.style.height="";w.style.flex="";w.style.transform="";w.classList.remove("sized","tucked","sheet-gone")}
   document.body.classList.toggle("swapped",on);
@@ -1335,6 +1336,8 @@ function swapPanels(on){
   if(on){uw.dataset.ukWrap="main";uh.removeAttribute("aria-expanded");uh.setAttribute("aria-label",T("uk_title"));CAL_SHEET.gone=false;CAL_SHEET.hide(false)}
   else{cw.dataset.calWrap="main";CAL_SHEET.gone=false;UK_SHEET.gone=false;UK_SHEET.expand(false,Math.round(vh*.4))}
   uh.title=T(on?"unswap_hint":"swap_hint");
+  if(!on&&SWAP.calX!=null){const x=SWAP.calX;scEl.scrollLeft=x;requestAnimationFrame(()=>{scEl.scrollLeft=x;scEl.dispatchEvent(new Event("scroll"))})}
+  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;requestAnimationFrame(()=>NOW_SYNC.realign&&NOW_SYNC.realign())}
   updDock();
   for(const [w,a] of r0){const b=w.getBoundingClientRect(),dy=a.top-b.top;if(Math.abs(dy)<1)continue;
     w.style.transition="none";w.style.transform=`translateY(${dy}px)`;w.style.opacity=".75";void w.offsetHeight;
@@ -1364,7 +1367,7 @@ UKZ.fitZ=()=>{const uk=document.getElementById("uklidy"),w=uk?uk.clientWidth:0;i
   const settle=()=>{save();requestAnimationFrame(()=>{if(typeof UK_SHEET!=="undefined")UK_SHEET.fit();if(typeof CAL_SHEET!=="undefined")CAL_SHEET.refit()})};
   const mark=()=>{UKZ.at=Date.now();UKZ.auto=false;pill.hidden=false};
   // reset = back to the default fit zoom, centred on today again (coupled to the calendar)
-  UKZ.reset=(sx)=>{const r=uk.getBoundingClientRect();if(sx==null)sx=r.left+r.width/2;UKZ.auto=true;zoomAt(UKZ.fitZ(),colAt(sx),sx);settle();if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;NOW_SYNC.realign&&NOW_SYNC.realign()}};
+  UKZ.reset=(sx)=>{const r=uk.getBoundingClientRect();if(sx==null)sx=r.left+r.width/2;UKZ.auto=true;zoomAt(UKZ.fitZ(),colAt(sx),sx);settle();if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;NOW_SYNC.home=document.getElementById("scroller").scrollLeft;NOW_SYNC.realign&&NOW_SYNC.realign()}};
   let pin=null;
   const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1, midx=t=>(t[0].clientX+t[1].clientX)/2;
   uk.addEventListener("touchstart",e=>{if(e.touches.length!==2||wrap.classList.contains("tucked"))return;e.preventDefault();hideTip();const x=midx(e.touches);pin={d0:dist(e.touches),z0:UKZ.z,c:colAt(x),raf:0,last:null};mark()},{passive:false});
@@ -1400,9 +1403,11 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   const frac=()=>pragueParts().ymd===D.t?pragueDayFraction():0.5;
   // screen-x of the uklidy now-line minus the calendar now-line
   // t176u: target = today's column centred in the strip when the calendar is at its Today position (goToday), shifted 1:1 with the calendar
-  const home=()=>Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,(todayIdx-0.4)*DAY_W*ZOOM));
+  // S.home = the calendar scroll at which ÚKLIDY is centred on today: the initial scroll, then the Today pill's target / a zoom reset
+  if(S.home==null)S.home=sc.scrollLeft;
+  const home=()=>S.home;
   const delta=()=>{const ud=uk.querySelector("[data-ukday0]");if(!ud)return null;const r=uk.getBoundingClientRect(),u=ud.getBoundingClientRect();if(!r.width)return null;
-    return u.left-(r.left+(uk.clientWidth-u.width)/2-(sc.scrollLeft-home()))};
+    return u.left-(r.left+(uk.clientWidth-u.width)/2-(SWAP.on?0:sc.scrollLeft-home()))}; // swapped: the calendar is tucked away → just centre today
   const set=v=>{uk.scrollLeft=v;S.prog=uk.scrollLeft};
   const stop=()=>{if(S.anim)cancelAnimationFrame(S.anim);S.anim=0};
   const align=()=>{const d=delta();if(d!==null&&Math.abs(d)>=0.5)set(uk.scrollLeft+d)};
@@ -1469,7 +1474,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   const curNight=()=>day||pragueParts().ymd;
   const addYmd=(ymd,n)=>{const d=new Date(`${ymd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
   /** Carousel step: previous (-1) / next (+1) night; the title, drawing and unknown note follow. Returns false at the range ends. */
-  function shiftNight(dir){const nx=addYmd(curNight(),dir);if(nx<D.a||nx>D.b)return false;day=nx;render();if(typeof PSHEET!=="undefined")requestAnimationFrame(()=>{PSHEET.refit();PSHEET.fit()});return true}
+  function shiftNight(dir){const nx=addYmd(curNight(),dir);if(nx<D.a||nx>D.b)return false;day=nx;render();if(typeof PSHEET!=="undefined")requestAnimationFrame(()=>{if(!PSHEET.tucked)PSHEET.refit();PSHEET.fit()});return true}
   // t177u: stay progress (check-in 15:00 → check-out 10:00, Prague time), filled up to now; no dates shown
   const pragueMs=()=>{const p=pragueParts();return Date.UTC(+p.ymd.slice(0,4),+p.ymd.slice(5,7)-1,+p.ymd.slice(8,10),p.hour,p.minute)};
   const ymdMs=(ymd,h)=>Date.UTC(+ymd.slice(0,4),+ymd.slice(5,7)-1,+ymd.slice(8,10),h);
@@ -1511,11 +1516,11 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     onState:()=>{panel.dataset.parkSheet=PSHEET.gone?"gone":PSHEET.tucked?"tucked":"open";savePark()}});
   function savePark(){try{localStorage.setItem("parkOpen",panel.classList.contains("open")?"1":"0")}catch(_){}}
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");
-    if(on){render();PSHEET.expand(false,undefined,.6)}else{if(PSHEET.gone){PSHEET.gone=false;panel.classList.remove("sheet-gone")}panel.style.height="";panel.dataset.parkSheet="closed"} savePark();updDock();}
+    if(on){render();PSHEET.expand(false,undefined,.6);setTimeout(()=>{if(panel.classList.contains("open")&&!PSHEET.tucked&&!PSHEET.gone)PSHEET.refit()},360)}else{if(PSHEET.gone){PSHEET.gone=false;panel.classList.remove("sheet-gone")}panel.style.height="";panel.dataset.parkSheet="closed"} savePark();updDock();}
   btn.addEventListener("click",()=>{day=null;if(panel.classList.contains("open")&&PSHEET.gone){PSHEET.wake();return}setOpen(!panel.classList.contains("open"))});
   cnt.addEventListener("click",()=>{day=null;mode="tonight";setOpen(true)});
   window.openParkingFor=ymd=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(ymd||""))return;day=ymd;setOpen(true)};
-  panel.addEventListener("click",e=>{const nv=e.target.closest("[data-park-nav]");if(nv){slideTo(+nv.dataset.parkNav);return}const t=e.target.closest("[data-park-tab]");if(!t)return;mode=t.dataset.parkTab;render();requestAnimationFrame(()=>{PSHEET.refit();PSHEET.fit()})});
+  panel.addEventListener("click",e=>{const nv=e.target.closest("[data-park-nav]");if(nv){slideTo(+nv.dataset.parkNav);return}const t=e.target.closest("[data-park-tab]");if(!t)return;mode=t.dataset.parkTab;render();requestAnimationFrame(()=>{if(!PSHEET.tucked)PSHEET.refit();PSHEET.fit()})});
   window.addEventListener("resize",()=>{if(panel.classList.contains("open"))fitW()});
   panel.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();slideTo(e.key==="ArrowLeft"?-1:1)}});
   // Carousel: swipe / mouse-drag sideways anywhere on the panel → previous / next night, snapping per day.
