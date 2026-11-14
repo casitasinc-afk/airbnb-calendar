@@ -1,5 +1,5 @@
 // Built by build_pwa.py — VERSION changes on every rebuild so phones pick up new data.
-const VERSION = "0563f2bc37fa";
+const VERSION = "49ebdb96f37d";
 const CACHE = "airbnb-cal-" + VERSION;
 const SHELL = ["./", "index.html", "data.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png"];
 
@@ -15,15 +15,16 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// Network-first (fresh data when online), fall back to cache when offline.
+// Network-first, bypassing the HTTP cache (t183u: everyone gets the latest published data), fall back to cache when offline.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(new Request(e.request.url, { cache: "no-store", credentials: "same-origin" }))
       .then((res) => {
         if (res && res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          const key = e.request.url.split("?")[0]; // t183u: one entry per file (the 90 s re-check adds ?ts=…)
+          caches.open(CACHE).then((c) => c.put(key, copy));
         }
         return res;
       })
