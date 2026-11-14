@@ -563,7 +563,13 @@ let ALERT_ST=(()=>{try{const v=JSON.parse(localStorage.getItem(ALERT_ST_KEY)||"{
 /* t140u: "Nevyřešeno – upozornit" also opens a prefilled card on board Administrace Casitas › Manaz with the red label (idLabels); 🔴 in the title as a fallback marker */
 const ADMIN={board:"670f83545d95e2f6aa69a5e9",name:"Administrace Casitas",list:["670aa7c3928f9972a5748d9a","Manaz"],red:"670f83563e37696f7a73dc70"};
 const TRELLO={board:"670a75ad8b848cfd69be3aa1",boardName:"Úkoly",boat:["670aa731fa855923fe275697","Hausboty"],lists:{Vavrinec:["670aa7b2f0d393c59cff3165","Vavrinec"],Podkozi:["670ab4107f1b6a0ae9906c46","PODKOZI"]}};
-function alertRaw(code){const v=D.A&&D.A[code];if(!v)return null;return {code,level:v[0]==="red"?"red":"yellow",type:v[1]||"Alert",since:v[2]||"",note:v[3]||""}}
+// t193u: an alert also expires in the app – stay over (departure date, after check-out 10:00 Prague) or reported > 48 h ago –
+// so a phone showing older data (offline / not yet refreshed) never keeps fixed or out-of-date warnings.
+const ALERT_MAX_H=48;let ALERT_END=null;
+function alertExpired(code,since){if(!ALERT_END){ALERT_END=new Map();for(const r of D.R||[])ALERT_END.set(r[0],r[4])}
+  const p=pragueParts(),e=ALERT_END.get(code);if(e&&(e<p.ymd||(e===p.ymd&&p.hour>=CHECKOUT_H)))return true;
+  const t=Date.parse(since);return !isNaN(t)&&Date.now()-t>ALERT_MAX_H*36e5}
+function alertRaw(code){const v=D.A&&D.A[code];if(!v||alertExpired(code,v[2]||""))return null;return {code,level:v[0]==="red"?"red":"yellow",type:v[1]||"Alert",since:v[2]||"",note:v[3]||""}}
 const alertKey=a=>`${a.code}|${a.type}|${a.since}`;
 // t183u: what everyone SEES comes from the SHARED state only = DATA.AS (published by the box from Supabase alert_actions) + RPC pulls.
 // alertsOff / alertState above are this device's own taps: until they reach the shared store they never hide or recount a warning,
