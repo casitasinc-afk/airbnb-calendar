@@ -221,10 +221,12 @@ body.swapped #uk-handle{cursor:ns-resize!important}
 #park-panel .pstays>.pstay{display:contents}
 #park-panel .pstays>.pstay.ov>*{color:#BE123C}
 #park-panel .pleft{display:inline-flex;align-items:center;gap:1px;width:68px}
-#park-panel .pprog{position:relative;display:block;width:60px;height:6px;border-radius:999px;background:#DBEAFE;overflow:hidden;flex:0 0 60px}
-#park-panel .pprog i{position:absolute;left:0;top:0;bottom:0;background:#2563EB;border-radius:999px}
+#park-panel .pprog{position:relative;display:block;width:60px;height:6px;border-radius:999px 0 0 999px;background:transparent;overflow:hidden;flex:0 0 60px}
+/* t188u: no light-blue track past the checkout – after it only a thin grey scale line (the 3-day window) with grey day ticks */
+#park-panel .pprog::before{content:"";position:absolute;left:0;right:0;top:2px;height:2px;border-radius:1px;background:#E5E7EB}
+#park-panel .pprog i{position:absolute;left:0;top:0;bottom:0;background:#2563EB;border-radius:999px 0 0 999px}
 #park-panel .pprog b{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.85);mix-blend-mode:normal}
-#park-panel .pprog b.t0{background:rgba(37,99,235,.35)}
+#park-panel .pprog b.t0{top:1px;bottom:1px;background:#94A3B8}
 #park-panel .pmore{width:7px;height:8px;flex:0 0 7px;color:#2563EB}
 #park-panel .ph{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;font-weight:700;font-size:13px}
 #park-panel .pbar{height:6px;border-radius:999px;background:#E5E7EB;overflow:hidden;margin-bottom:6px}
@@ -1522,7 +1524,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   function prog(x){if(!x.e)return `<span class="pleft"><span class="pprog"></span></span>`;
     const now=pragueMs(),p=pragueParts(),t0=ymdMs(p.ymd,CHECKOUT_H),D=864e5,end=t0+3*D,W=Math.max(1,end-now),dep=ymdMs(x.e,CHECKOUT_H);
     const more=dep>end,f=Math.max(0,Math.min(1,(dep-now)/W)),pc=Math.round(f*1000)/10,days=Math.max(0,Math.round((dep-now)/D));
-    const ticks=[1,2].map(k=>(t0+k*D-now)/W).concat(t0>now?[(t0-now)/W]:[]).filter(q=>q>0&&q<1).map(q=>`<b class="${q*100<pc?"":"t0"}" style="left:${(q*100).toFixed(1)}%"></b>`).join("");
+    const ticks=[1,2].map(k=>(t0+k*D-now)/W).concat(t0>now?[(t0-now)/W]:[]).filter(q=>q>0&&q<1).map(q=>`<b class="${q<f-1e-4?"":"t0"}" style="left:${(q*100).toFixed(1)}%"></b>`).join("");
     const lab=T(more?"park_left_more":"park_left",nN("park_days",days));
     return `<span class="pleft" role="img" data-park-left="${days}" data-park-fill="${pc}"${more?' data-park-more="1"':""} aria-label="${esc(lab)}" title="${esc(lab)}"><span class="pprog"><i style="width:${pc}%"></i>${ticks}</span>${more?'<svg class="pmore" viewBox="0 0 7 8" aria-hidden="true"><path d="M1.5 1 L5 4 L1.5 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>':""}</span>`}
   /** default width ≈ 2× the four columns (listing, guest, progress, plate), never wider than the screen */
