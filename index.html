@@ -1554,6 +1554,7 @@ function makeSheet(o){
     if(o.onOverTop&&e.type==="pointerup"&&((dd.raw||0)>swapAt(mx)||(v<-0.6&&dd.h0>=mx-8)||(o.flickSwap&&dd.zone==="handle"&&v<-0.5))){o.onOverTop();return}
     if(h<o.tuckH*.6||(v>0.5&&(dd.h0<=o.tuckH+6||h<o.tuckH))) S.hide(); // past the low point / flick down from the strip → gone (tab only)
     else if(v>0.5||h<o.tuckH+Math.max(40,vh()*.12)) S.tuck();
+    else if(o.snap&&o.defH){S.expand(true);return} // t230u: parking returns to "all cars + two empty rows"
     else if(v<-0.5) S.expand(true,h<half-10?half:Math.round(mx));
     else S.expand(true,Math.round(h));
     if(o.defH)S.auto=false;};
@@ -1564,6 +1565,7 @@ function makeSheet(o){
   o.handle.addEventListener("keydown",e=>{if(o.enabled&&!o.enabled())return;if(e.key==="Enter"||e.key===" "){e.preventDefault();S.toggle()}});
   // restore
   try{const v=JSON.parse(localStorage.getItem(o.key)||"null");if(v){S.tucked=!!v.t;S.h=typeof v.h==="number"?v.h:null;S.gone=!!v.g;S.auto=!!v.a}else if(o.legacyTucked&&o.legacyTucked())S.tucked=true}catch(_){}
+  if(o.snap)S.auto=true;
   window.addEventListener("resize",()=>{if(!S.tucked&&S.visible()&&cur()>vh()*.85+1)setH(Math.round(vh()*.85),false)});
   /** content got shorter (zoom out, fewer cars that night) → shrink to it, so no white block remains */
   /** auto-sized (not dragged by hand) → recompute the default height (ÚKLIDY day scrolled, zoom, resize) */
@@ -1814,16 +1816,19 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   // bottom sheet: P button / capsule / P cell open it expanded; the handle drags or tucks it (tucked = title + N/12 · %); P button closes
   const pContentH=()=>{const body=document.getElementById("park-body"),hd=document.getElementById("park-handle");if(panel.classList.contains("tucked")||!body.firstElementChild)return null;
     const cs=getComputedStyle(body),a=body.firstElementChild.getBoundingClientRect(),b=body.lastElementChild.getBoundingClientRect();
-    const row=body.querySelector(".pstay .ls"),line=Math.round(row?row.getBoundingClientRect().height:18)||18; // t176u: + one empty white line under the list
-    return hd.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(b.bottom-a.top)+2+line};
-  /** t176u default height: the whole car list + one empty line (measured even from the tucked strip), capped to 80 % of the screen */
+    const row=body.querySelector(".pstay .ls"),line=Math.round(row?row.getBoundingClientRect().height:18)||18; // t230u: + TWO empty white lines under the list
+    return hd.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(b.bottom-a.top)+2+2*line};
+  /** t230u default height: the whole car list + two empty lines (measured even from the tucked strip), capped to 80 % of the screen */
   const pDefH=()=>{if(!panel.classList.contains("open"))return null;const t=panel.classList.contains("tucked");if(t)panel.classList.remove("tucked");fitW();const c=pContentH();if(t)panel.classList.add("tucked");
     return c?Math.round(Math.min(c,window.innerHeight*.8)):null};
-  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),get tuckH(){return 20+Math.round(28*Math.max(1,window.__pkz||1))+2},key:"parkSheet",natCap:.5,hAxis:true,contentH:pContentH,defH:pDefH,label:T("park"),
+  const PSHEET=makeSheet({wrap:panel,handle:document.getElementById("park-handle"),get tuckH(){return 20+Math.round(28*Math.max(1,window.__pkz||1))+2},key:"parkSheet",natCap:.5,hAxis:true,snap:true,contentH:pContentH,defH:pDefH,label:T("park"),
     visible:()=>panel.classList.contains("open"),
     onView:t=>panel.classList.toggle("tucked",t),
     onState:()=>{panel.dataset.parkSheet=PSHEET.gone?"gone":PSHEET.tucked?"tucked":"open";savePark()}});
-  window.PARK_ZOOM=panelZoom(panel,"parkZoom",z=>{window.__pkz=z;if(typeof PSHEET!=="undefined"&&PSHEET.tucked&&!PSHEET.gone&&panel.classList.contains("tucked"))PSHEET.tuck(false)});
+  // t230u: the fit height follows the content – car count / night, language, zoom (open, not tucked, not mid-drag)
+  let pRf=0;const pRefit=()=>{cancelAnimationFrame(pRf);pRf=requestAnimationFrame(()=>{if(typeof PSHEET!=="undefined"&&panel.classList.contains("open")&&!PSHEET.tucked&&!PSHEET.gone){PSHEET.auto=true;PSHEET.refit()}})};
+  new MutationObserver(pRefit).observe(document.getElementById("park-body"),{childList:true,subtree:true,characterData:true});
+  window.PARK_ZOOM=panelZoom(panel,"parkZoom",z=>{window.__pkz=z;if(typeof PSHEET!=="undefined"&&PSHEET.tucked&&!PSHEET.gone&&panel.classList.contains("tucked"))PSHEET.tuck(false);else setTimeout(pRefit,30)});
   function savePark(){try{localStorage.setItem("parkOpen",panel.classList.contains("open")?"1":"0")}catch(_){}}
   function setOpen(on){panel.classList.toggle("open",on);btn.setAttribute("aria-expanded",on?"true":"false");panel.setAttribute("aria-hidden",on?"false":"true");
     if(on){render();PSHEET.expand(false,undefined,.6);setTimeout(()=>{if(panel.classList.contains("open")&&!PSHEET.tucked&&!PSHEET.gone)PSHEET.refit()},360)}else{if(PSHEET.gone){PSHEET.gone=false;panel.classList.remove("sheet-gone")}panel.style.height="";panel.dataset.parkSheet="closed"} savePark();updDock();}
