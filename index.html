@@ -818,6 +818,7 @@ const now=new Date(); let todayIdx=idx(now,origin);
 const dayCount=idx(end,origin)+1;
 if(todayIdx<0||todayIdx>=dayCount) todayIdx=idx(parse(D.t),origin);
 const L=D.L; const hb=L.filter(x=>x[1]===1).length;
+const isHouse=n=>{const r=L.find(x=>x[0]===n);return r?r[1]===0:/^(Vavrinec|Podkozi|Dafni|Lake House)$/i.test(String(n||""));};
 
 (function(){
   const el=document.getElementById("meta");
@@ -875,7 +876,7 @@ g+=`</div><div class="days">`;
 days.forEach(x=>{g+=`<div class="day${x.we?" we":""}${x.today?" today":""}"><span class="wd">${WEEKDAYS[x.wd]}</span><span class="dn">${x.d.getDate()}</span></div>`});
 g+=`</div><div class="pdays">`;
 const PARK_DAY=Array.from({length:dayCount},()=>({n:0,cars:[]}));
-D.R.forEach(([code,listing,,s,e])=>{const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pls=carPlates(code);for(let i=a;i<b;i++){PARK_DAY[i].n++;pls.forEach(pl=>PARK_DAY[i].cars.push({listing,plate:pl}));}});
+D.R.forEach(([code,listing,,s,e])=>{if(isHouse(listing))return;const a=Math.max(0,idx(parse(s),origin)),b=Math.min(dayCount,idx(parse(e),origin));const pls=carPlates(code);for(let i=a;i<b;i++){PARK_DAY[i].n++;pls.forEach(pl=>PARK_DAY[i].cars.push({listing,plate:pl}));}});
 // cars = plate (D.P) or transport mode car (D.T, "SPZ ?") via carPlates(); other stays are "car unknown"
 PARK_DAY.forEach((pk,i)=>{const k=pk.cars.length,u=pk.n-k,pct=Math.round(k/PARK_SPOTS*100);const ymd=`${days[i].d.getFullYear()}-${String(days[i].d.getMonth()+1).padStart(2,"0")}-${String(days[i].d.getDate()).padStart(2,"0")}`;g+=`<div class="pday${pct>=100?" red":pct>=50?" amber":""}" data-pday="${i}" data-ymd="${ymd}" role="button" aria-label="${esc(T("pday_aria",ymd,k,PARK_SPOTS))}" title="${esc(T("pday_title",k,pct,PARK_SPOTS))}${u?` · ${esc(T("car_unknown_n",u))}`:""}"><span class="pp">P</span><span class="pn">${k}</span></div>`});
 g+=`</div><div id="body" style="height:${L.length*ROW_H}px"><div class="stripes">`;
@@ -1519,7 +1520,17 @@ const EC_DRAFT={en:"Hello {n}, good news – an earlier check-in at {t} is fine 
  it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. L'houseboat sarà pronto per voi. A presto! Gabriela & Team",
  nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. De woonboot is dan voor u klaar. Tot snel! Gabriela & Team",
  uk:"Вітаємо, {n}! Гарна новина – ранній заїзд о {t} для нас підходить. Хаусбот буде готовий. До зустрічі! Габріела та команда"};
-function ecDraft(lang,name,eta){const t=String(eta||"").replace(/^~/,"");return (EC_DRAFT[lang]||EC_DRAFT.en).replace("{n}",name||"").replace("{t}",t).replace("  "," ")}
+EC_DRAFT_HOUSE={en:"Hello {n}, good news – an earlier check-in at {t} is fine for us. The house will be ready for you then. See you soon! Gabriela & Team",
+ de:"Hallo {n}, gute Nachricht – ein früherer Check-in um {t} ist für uns in Ordnung. Das Haus ist dann für Sie bereit. Bis bald! Gabriela & Team",
+ cs:"Dobrý den {n}, dobrá zpráva – dřívější příjezd v {t} je v pořádku. Dům pro Vás bude připravený. Těšíme se! Gabriela & tým",
+ sk:"Dobrý deň {n}, dobrá správa – skorší príchod o {t} je v poriadku. Dom bude pre Vás pripravený. Tešíme sa! Gabriela & tím",
+ pl:"Dzień dobry {n}, dobra wiadomość – wcześniejsze zameldowanie o {t} jest w porządku. Dom będzie wtedy gotowy. Do zobaczenia! Gabriela & Team",
+ fr:"Bonjour {n}, bonne nouvelle – une arrivée anticipée à {t} nous convient. La maison sera prête pour vous. À bientôt ! Gabriela & l'équipe",
+ es:"Hola {n}, buenas noticias: la llegada anticipada a las {t} está bien para nosotros. La casa estará lista para ustedes. ¡Hasta pronto! Gabriela y equipo",
+ it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. La casa sarà pronta per voi. A presto! Gabriela & Team",
+ nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. Het huis is dan voor u klaar. Tot snel! Gabriela & Team",
+ uk:"Вітаємо, {n}! Гарна новина – ранній заїзд о {t} для нас підходить. Будинок буде готовий. До зустрічі! Габріела та команда"};
+function ecDraft(lang,name,eta,listing){const t=String(eta||"").replace(/^~/,"");const pack=isHouse(listing)?(EC_DRAFT_HOUSE[lang]||EC_DRAFT_HOUSE.en):(EC_DRAFT[lang]||EC_DRAFT.en);return pack.replace("{n}",name||"").replace("{t}",t).replace("  "," ")}
 (function(){const pop=document.createElement("div");pop.id="ec-pop";pop.hidden=true;pop.setAttribute("role","dialog");pop.setAttribute("data-ec-pop","");document.body.appendChild(pop);let cur=null;
   function open(code){const i=ecInfo(code);if(!i)return;cur=code;const st=ecSt(code),sh=ALERT_SH[ecKey(code)];
     pop.innerHTML=`<div class="h">⏰ ${esc(T("ec_q"))}</div><div>${esc(i.listing)} · ${esc(i.guest)} · ${esc(i.iso.split("-").reverse().join("."))}</div><div>${esc(T("ec_info",i.eta))}</div>
@@ -1926,6 +1937,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
   function stays(night){
     const p=pragueParts(), today=night||p.ymd, now=[], tonight=[];
     D.R.forEach(([code,listing,guest,s,e])=>{
+      if(isHouse(listing))return; // t247u: houses are not in the marina parking lot
       const st={code,listing,guest,s,e,plate:(D.P&&D.P[code])||""};
       if(s<=today&&e>today) tonight.push(st);
       const arrived=s<today||(s===today&&p.hour>=CHECKIN_H), notLeft=e>today||(e===today&&p.hour<CHECKOUT_H);
@@ -2405,7 +2417,11 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
     const ico={car:"🚗",bus:"🚌",train:"🚆",plane:"✈️",taxi:"🚕"};
     const row=(ok,isNa,key,lab,extra)=>`<div class="ms-cki${ok?" on":isNa?" na":""}${far&&!ok&&!isNa?" far":""}" data-ck="${key}"><span class="bx">${isNa?"—":ok?"☑":"☐"}</span><span>${esc(lab)}${extra?` · ${extra}`:""}</span></div>`;
     const trLab=tr?`${ico[tr]||""} ${esc(T("tr_"+tr)||tr)}`.trim():"";
-    return `<div class="ms-ck" data-ms-ck="${far?"far":"soon"}">${row(read,false,"read",T("ck_read"))}${row(!!plate,na,"plate",T("ck_plate"),na?esc(T("ck_na")):(plate?esc(plate):""))}${row(!!eta,false,"eta",T("ck_eta"),eta?esc(eta):"")}${row(!!tr,false,"tr",T("ck_tr"),trLab)}</div>`;
+    const house=!!m.hs||isHouse(t.listing);
+    // t248u: house stays don't use the houseboat website or marina plates — hide those boxes, keep ETA + transport.
+    const readRow=house?"":row(read,false,"read",T("ck_read"));
+    const plateRow=house?"":row(!!plate,na,"plate",T("ck_plate"),na?esc(T("ck_na")):(plate?esc(plate):""));
+    return `<div class="ms-ck" data-ms-ck="${house?"house":far?"far":"soon"}">${readRow}${plateRow}${row(!!eta,false,"eta",T("ck_eta"),eta?esc(eta):"")}${row(!!tr,false,"tr",T("ck_tr"),trLab)}</div>`;
   };
   const smsLang=t=>metaOf(t).sms_lang||({cs:"cs",de:"de",es:"es",fr:"fr",it:"it",pl:"pl",nl:"nl",sk:"sk",uk:"uk"})[t.last_msg_lang]||"en";
   const looksDe=s=>/[äöüßÄÖÜ]|\b(und|nicht|wir|ich|danke|bitte|Hallo|eine|einen|für|mit|auf|der|die|das|Ankunft|Gäste|Kennzeichen)\b/.test(s||"");
@@ -2458,7 +2474,7 @@ ${stTxt(t)?`<div class="ms-st">${esc(stTxt(t))}</div>`:""}${mine?`<div class="ms
 ${meta.resp?`<div class="ms-rs" data-ms-rs="${esc(meta.resp)}">${rsDot(meta)}<b>${esc(T("rs_"+meta.resp))}</b>${meta.resp_reason?" · "+esc(meta.resp_reason):""}</div>`:""}
 ${(()=>{const ec=ecInfo(codeOf(t));if(!ec)return "";const st=ecSt(ec.code);return `<div class="ms-ec" data-ms-ec="${esc(ec.code)}">⏰ <b>${esc(T("ec_q"))}</b> ${esc(T("ec_info",ec.eta))}${ec.warn?`<div class="w">${esc(T("ec_warn",ecGap(ec.gap),ec.depT))}</div>`:""}${st?`<div><b>${esc(st==="ok"?T("ec_yes_l",ec.eta):T("ec_no_l"))}</b></div>`:""}<div><button type="button" class="ok" data-ec="${esc(ec.code)}">${esc(st?T("ec_q"):T("ec_ok")+" / "+T("ec_no"))}</button></div></div>`})()}
 ${/^(yellow|red)$/.test(meta.resp||"")&&meta.sms?(SMSO[t.id]?`<div class="ms-sms" data-ms-sms><textarea data-sms-txt>${esc(meta.sms)}</textarea><div class="b">${meta.phone?`<a data-sms-link href="sms:${esc(meta.phone)}?&body=${esc(encodeURIComponent(meta.sms))}">${esc(T("sms_open"))}</a>`:`<span class="np" data-sms-nophone>${esc(T("sms_nophone"))}</span>`}<button type="button" class="cp" data-sms-copy>${esc(T("sms_copy"))}</button></div><small>${esc(T("sms_note"))}</small></div>`:""):""}
-<div class="ms-d">${/^(yellow|red)$/.test(meta.resp||"")&&meta.sms?`<button type="button" class="ms-smsb" data-ms-smsb>${esc(T("sms_btn"))}</button>`:""}${(()=>{const ec=ecInfo(codeOf(t));if(!ec||ecSt(ec.code)!=="ok")return "";const body=ecDraft(smsLang(t),(t.guest_name||"").split(" ")[0],ec.eta);
+<div class="ms-d">${/^(yellow|red)$/.test(meta.resp||"")&&meta.sms?`<button type="button" class="ms-smsb" data-ms-smsb>${esc(T("sms_btn"))}</button>`:""}${(()=>{const ec=ecInfo(codeOf(t));if(!ec||ecSt(ec.code)!=="ok")return "";const body=ecDraft(smsLang(t),(t.guest_name||"").split(" ")[0],ec.eta,t.listing);
   return `<button type="button" class="ms-ecd" data-ms-act="send_custom" data-ms-ecd="1" data-ms-body="${esc(body)}"><b>E · ${esc(T("ec_draft"))}</b>${esc(body)}</button><button type="button" class="ms-x" data-ms-ecd-copy="${esc(body)}">📋 ${esc(T("sms_copy"))} (E)</button>`})()}${(()=>{const fr=freshDr(t);return fr.length?"":`<div class="ms-dn" data-ms-nodr="${role==="guest"?"none":"ours"}">${esc(T(role==="guest"||t.kind!=="message"?"dr_none":"dr_ours"))}</div>`})()}${freshDr(t).map(d=>`<button type="button" data-ms-act="send_${esc(d.key)}" data-ms-key="${esc(d.key)}"><b>${esc(T("msg_send",d.key))} · ${esc(draftLab(d))}</b>${esc(d.body||"")}${draftBodyTr(d)?`<div class="ms-dtr">${esc(draftBodyTr(d))}</div>`:""}</button>`).join("")}
 <div class="ms-rx" data-ms-rx><span>${esc(T("rx_lbl"))}</span><button type="button" data-ms-react="❤️" aria-label="❤️">❤️</button><button type="button" data-ms-react="👍" aria-label="👍">👍</button>${meta.ab?`<a href="https://www.airbnb.com/hosting/thread/${esc(meta.ab)}" target="_blank" rel="noopener" data-ms-ab>${esc(T("rx_open"))}</a>`:""}</div>
 ${(()=>{const pd=(t.drafts||[]).find(d=>d&&d.key==="P"),loc=POL[t.id],L=t.last_msg_at?Date.parse(t.last_msg_at):0;
