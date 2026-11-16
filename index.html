@@ -1106,14 +1106,17 @@ function hookTodayStick(el,homeFn,o){
   el.addEventListener("pointerup",onEnd); el.addEventListener("pointercancel",onEnd);
   el.addEventListener("touchstart",e=>{if(e.touches.length>=2)abort()},{passive:true});
   el.addEventListener("scroll",()=>{
-    if(g&&g.moved)return; if(o&&o.animating&&o.animating())return;
+    if(g&&g.moved)return;
     clearTimeout(endT);
-    endT=setTimeout(()=>{
-      if(g||(o&&o.animating&&o.animating()))return;
+    const kick=()=>{
+      if(g)return;
+      if(o&&o.animating&&o.animating()){endT=setTimeout(kick,90);return}
       const h=homeFn();
-      if(Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){if(!near())animTo(h,240);away=false}else away=true;
+      if(Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){if(Math.abs(el.scrollLeft-h)>1)animTo(h,240);away=false}
+      else away=true;
       setTA();
-    },90);
+    };
+    endT=setTimeout(kick,90);
   },{passive:true});
   setTA();
   return {abort,isAway:()=>away};
