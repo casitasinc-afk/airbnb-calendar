@@ -102,20 +102,6 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .tzone-in{height:100%;background:rgba(31,120,180,.07)}
 .nowline{position:absolute;top:0;width:2px;height:100%;background:repeating-linear-gradient(to bottom,rgba(255,56,92,.7) 0 1.5px,transparent 1.5px 3px);pointer-events:none;z-index:6} /* dotted 2px red (70%), dense 1.5px dots / 1.5px gaps (positions unchanged) */
 .nowline.head{top:14px;height:calc(var(--head-h) - 14px);box-shadow:none;z-index:5}
-/* t239u: sticky today column (pinned next to the names when you scroll to the future) */
-#today-pin{position:absolute;top:0;width:var(--day-w);height:100%;z-index:5;box-sizing:border-box;background:var(--bg);border-right:1px solid var(--b-subtle);box-shadow:3px 0 8px rgba(0,0,0,.08);pointer-events:none;overflow:hidden}
-#today-pin[hidden]{display:none}
-#today-pin .day,#today-pin .pday{width:100%;flex-shrink:0;pointer-events:auto}
-#today-pin .today-pin-mh{flex-shrink:0;background:var(--bg);font-size:10px;font-weight:600;color:var(--t2);line-height:14px;padding-left:3px;white-space:nowrap;overflow:hidden}
-#grid.today-stuck .month .ml{position:static}
-#today-pin-body,#today-pin .today-pin-body{position:relative;width:100%;overflow:hidden;background:var(--bg)}
-#today-pin .pin-bar{pointer-events:auto;z-index:3}
-#today-pin .dmark{left:0}
-#today-pin .nowline,#today-pin .nowline.head{z-index:6;pointer-events:none}
-#today-pin .tzones{left:0;width:100%;z-index:1;pointer-events:none}
-#today-pin .alert-badge{pointer-events:auto}
-/* t239u: úklidy today column stays pinned when the strip scrolls sideways */
-.uk-col[data-ukday0]{position:sticky;left:0;z-index:4;background:var(--bg);box-shadow:3px 0 8px rgba(0,0,0,.08)}
 /* t239u: parking fullscreen (tap open); swipe-open keeps the sheet height */
 #park-fullbar{display:none;align-items:center;gap:8px;flex:0 0 auto;padding:6px 10px;border-bottom:1px solid #E5E7EB;background:#fff;z-index:1}
 #park-fullbar .pf-title{flex:1;min-width:0;font:700 15px/1.2 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -983,7 +969,6 @@ function applyZoom(z){
   namesEl.style.setProperty("--row-h",(ROW_H*z)+"px"); namesEl.style.setProperty("--nzf",String(Math.max(.8,Math.min(1.25,z))));
   nheadEl.style.height=(HEAD_TOTAL*z)+"px";
   const zb=document.getElementById("zoom-reset"); if(zb){zb.hidden=Math.abs(z-1)<.01; zb.textContent=Math.round(z*100)+"% · 1×";}
-  if(window.syncTodayPin)window.syncTodayPin();
 }
 function contentAt(sx,sy){const r=sc.getBoundingClientRect(),q=shellEl.getBoundingClientRect();return {cx:(sc.scrollLeft+sx-r.left)/ZOOM,cy:(shellEl.scrollTop+sy-q.top)/ZOOM}}
 function zoomAt(z,c,sx,sy){
@@ -1044,90 +1029,95 @@ function markPinched(){PINCH_AT=Date.now();sc.dataset.justDragged="1";setTimeout
 applyZoom(ZOOM);
 sc.scrollLeft=Math.max(0,(todayIdx-2)*DAY_W*ZOOM);
 
-// t239u: when today would scroll off to the left, pin a copy of the today column next to the names.
-// Stay bars keep scrolling; the pin paints today's slice (with row stripes) above them so future bars
-// pass underneath. Pin chrome has pointer-events:none except P-cells and pin-bars (t240u).
-(function(){
-  const pin=document.createElement("div");
-  pin.id="today-pin";
-  pin.hidden=true;
-  pin.setAttribute("aria-hidden","true");
-  const mh=document.createElement("div"); mh.className="today-pin-mh"; mh.style.height="14px";
-  const td=days[todayIdx]&&days[todayIdx].d; if(td) mh.textContent=MONTHS[td.getMonth()]+" "+td.getFullYear();
-  pin.appendChild(mh);
-  const daySrc=grid.querySelector(".day.today");
-  if(daySrc) pin.appendChild(daySrc.cloneNode(true));
-  const pdaySrc=grid.querySelector(`.pday[data-pday="${todayIdx}"]`);
-  if(pdaySrc) pin.appendChild(pdaySrc.cloneNode(true));
-  const body=document.createElement("div");
-  body.className="today-pin-body";
-  body.style.height=(L.length*ROW_H)+"px";
-  const tz=grid.querySelector("#body .tzones");
-  body.innerHTML=`<div class="stripes">${L.map((_,ri)=>`<div class="stripe${ri%2?" odd":""}" style="top:${ri*ROW_H}px;width:100%"></div>`).join("")}</div>`+
-    `<div class="tzones" style="left:0;width:100%">${tz?tz.innerHTML:""}</div>`+
-    `<div class="dmark t"></div><div class="nowline" id="nowPin" style="display:none"></div>`;
-  const todayL=todayIdx*DAY_W, todayR=todayL+DAY_W;
-  grid.querySelectorAll("#body .bar").forEach(b=>{
-    const left=parseFloat(b.style.left), w=parseFloat(b.style.width);
-    if(!(left+w>todayL&&left<todayR)) return;
-    const row=b.closest(".row");
-    const c=b.cloneNode(true);
-    c.classList.add("pin-bar");
-    c.removeAttribute("id");
-    // t240u: only the today slice is hittable, so a long pin-bar cannot steal taps on later days
-    const visL=Math.max(left,todayL), visR=Math.min(left+w,todayR);
-    c.style.left=(visL-todayL)+"px";
-    c.style.width=(visR-visL)+"px";
-    c.style.overflow="hidden";
-    c.style.top=(parseFloat(row&&row.style.top||0)+(ROW_H-32)/2)+"px";
-    const inner=c.querySelector(".bar-inner");
-    if(inner){inner.style.marginLeft=(left-visL)+"px"; inner.style.width=w+"px"; inner.style.boxSizing="border-box"}
-    body.appendChild(c);
-  });
-  pin.appendChild(body);
-  const nh=document.createElement("div"); nh.className="nowline head"; nh.id="nowPinHead"; nh.style.display="none"; pin.appendChild(nh);
-  grid.appendChild(pin);
-  const clipEls=[".months",".days",".pdays","#body"].map(sel=>grid.querySelector(sel)).filter(Boolean);
-  const dmark0=grid.querySelector(".dmark.t[data-calday0]");
-  const tz0=grid.querySelector("#body .tzones");
-  function sync(){
-    const z=ZOOM||1;
-    const shift=sc.scrollLeft/z - todayIdx*DAY_W;
-    const stuck=shift>0.5;
-    grid.classList.toggle("today-stuck",stuck);
-    pin.hidden=!stuck;
-    pin.style.left=(stuck?sc.scrollLeft/z:todayIdx*DAY_W)+"px";
-    const clip=stuck?`inset(0 0 0 ${sc.scrollLeft/z+DAY_W}px)`:"";
-    clipEls.forEach(el=>{el.style.clipPath=clip});
-    if(dmark0) dmark0.style.visibility=stuck?"hidden":"";
-    if(tz0) tz0.style.visibility=stuck?"hidden":"";
-    const head=document.getElementById("nowHead");
-    if(head) head.style.visibility=stuck?"hidden":"";
-    const nb=document.getElementById("nowBody"), np=document.getElementById("nowPin"), nph=document.getElementById("nowPinHead");
-    if(nb&&np){np.style.display=nb.style.display; np.style.left=((pragueDayFraction()*DAY_W)-1)+"px"; np.title=nb.title||""}
-    if(nb&&nph){nph.style.display=nb.style.display; nph.style.left=((pragueDayFraction()*DAY_W)-1)+"px"; nph.title=nb.title||""}
-  }
-  window.syncTodayPin=sync;
-  sc.addEventListener("scroll",sync,{passive:true});
-  window.addEventListener("resize",sync);
-  requestAnimationFrame(sync);
-})();
-
 // Smooth horizontal scroll of the calendar (Today pill, week snap). Cancelled by a new call.
 let SC_ANIM=0;
+// Same target as the Dnes button: today at the left with ~40% of yesterday visible. (Dnes itself is unchanged.)
+function todayScrollX(){return Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,(todayIdx-0.4)*DAY_W*ZOOM))}
 function scrollCalTo(x,ms=380){cancelAnimationFrame(SC_ANIM);const from=sc.scrollLeft,to=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,x)),t0=performance.now();
   if(Math.abs(to-from)<1){sc.scrollLeft=to;return}
   const step=t=>{const p=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-p,3);sc.scrollLeft=from+(to-from)*e;if(p<1)SC_ANIM=requestAnimationFrame(step);else SC_ANIM=0};SC_ANIM=requestAnimationFrame(step)}
 // "Today": today at the left edge with ~40% of yesterday visible; the cleaning panel re-couples to the calendar (today under the now-line, lists to top).
 function goToday(){
-  hideTip(); scrollCalTo((todayIdx-0.4)*DAY_W*ZOOM);
-  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;NOW_SYNC.home=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,(todayIdx-0.4)*DAY_W*ZOOM));}
+  hideTip(); scrollCalTo(todayScrollX());
+  if(typeof NOW_SYNC!=="undefined"){NOW_SYNC.coupled=true;NOW_SYNC.held=false;NOW_SYNC.home=todayScrollX();}
   const uk=document.getElementById("uklidy");
   if(uk){uk.querySelectorAll(".uk-list").forEach(l=>{l.scrollTop=0});const d0=uk.querySelector("[data-ukday0]");
     if(d0&&typeof NOW_SYNC==="undefined"){uk.scrollLeft=d0.offsetLeft}}
   sc.dispatchEvent(new Event("scroll")); // realign the cleaning strip even if the calendar is already there
 }
 document.getElementById("today-btn").addEventListener("click",goToday);
+// t243u: when scrolled to the Today position, a short swipe meets resistance and springs back;
+// only a longer, deliberate drag (or a firm fling) moves the panel away. Once away, scrolling is
+// normal; coming back near Today settles onto that position again. Dnes button, bar taps,
+// vertical scroll and the parking swipe are unchanged.
+const TODAY_STICK={COMMIT:0.28,FLING:0.65,RUBBER:0.4,nearPx(el){const w=(el&&el.clientWidth)||window.innerWidth||390;return Math.max(24,.12*w)}};
+function todayResist(dx,vw){const t=TODAY_STICK.COMMIT*vw,s=Math.sign(dx)||1,a=Math.abs(dx);return a<=t?dx*TODAY_STICK.RUBBER:s*(t*TODAY_STICK.RUBBER+(a-t))}
+function hookTodayStick(el,homeFn,o){
+  const ST=TODAY_STICK; let g=null,endT=0,away=false;
+  const vw=()=>el.clientWidth||window.innerWidth||390;
+  const near=(x,pad)=>{const h=homeFn();return Math.abs((x==null?el.scrollLeft:x)-h)<=(pad==null?ST.nearPx(el):pad)};
+  const setTA=()=>{
+    el.dataset.todayStick=away?"away":"home";
+    if(o&&o.keepTouch)return;
+    el.style.touchAction=away?(o&&o.awayTouch||"pan-x pan-y"):(o&&o.homeTouch||"pan-y");
+  };
+  const animTo=(x,ms)=>{if(o&&o.animate)o.animate(x,ms);else el.scrollLeft=x};
+  const abort=()=>{if(!g)return;if(g.cap){try{el.releasePointerCapture(g.id)}catch(_){}}g=null;el.classList.remove("dragging");if(o&&o.hold)o.hold(false)};
+  el.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse"&&e.button!==0)return; if(e.isPrimary===false)return;
+    if(typeof PINCH_AT!=="undefined"&&Date.now()-PINCH_AT<80)return;
+    if(o&&o.ignore&&o.ignore(e))return;
+    cancelAnimationFrame(SC_ANIM); if(typeof UK_ANIM!=="undefined")cancelAnimationFrame(UK_ANIM);
+    if(o&&o.hold)o.hold(true);
+    g={id:e.pointerId,x0:e.clientX,y0:e.clientY,l0:el.scrollLeft,fromHome:near(),moved:false,axis:null,pts:[[e.clientX,e.timeStamp]],cap:false};
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!g||e.pointerId!==g.id)return;
+    const dx=e.clientX-g.x0,dy=e.clientY-g.y0;
+    if(!g.axis){
+      if(Math.hypot(dx,dy)<6)return;
+      g.axis=Math.abs(dx)>Math.abs(dy)*1.15?"x":"y";
+      if(g.axis==="y"){if(o&&o.hold)o.hold(false);g=null;return}
+      g.moved=true;el.classList.add("dragging");if(typeof hideTip==="function")hideTip();
+      try{el.setPointerCapture(e.pointerId);g.cap=true}catch(_){}
+    }
+    if(g.axis!=="x")return;
+    if(e.cancelable)e.preventDefault();
+    g.pts.push([e.clientX,e.timeStamp]); while(g.pts.length>6&&e.timeStamp-g.pts[0][1]>80)g.pts.shift();
+    g.x1=e.clientX; g.t1=e.timeStamp;
+    el.scrollLeft=g.l0-(g.fromHome?todayResist(dx,vw()):dx);
+  },{passive:false});
+  const vel=()=>{if(!g||!g.pts.length)return 0;const p0=g.pts[0],p1=g.pts[g.pts.length-1],dt=p1[1]-p0[1];return dt>0?(p1[0]-p0[0])/dt:0};
+  const onEnd=e=>{
+    if(!g||e.pointerId!==g.id)return;
+    const s=g,v=(!g.pts.length)?0:(()=>{const p0=g.pts[0],p1=g.pts[g.pts.length-1],dt=p1[1]-p0[1];return dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0})();
+    g=null;el.classList.remove("dragging");
+    if(s.cap){try{el.releasePointerCapture(e.pointerId)}catch(_){}}
+    if(o&&o.hold)o.hold(false);
+    if(!s.moved)return;
+    if(o&&o.markDrag)o.markDrag();
+    const finger=(s.x1!=null?s.x1:s.x0)-s.x0,w=vw(),h=homeFn();
+    if(s.fromHome&&Math.abs(finger)<ST.COMMIT*w&&Math.abs(v)<ST.FLING){animTo(h,280);away=false;setTA();return}
+    let target=Math.max(0,Math.min(el.scrollWidth-el.clientWidth,el.scrollLeft-v*180));
+    if(Math.abs(target-h)<=ST.nearPx(el)||Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){animTo(h,260);away=false}
+    else{if(Math.abs(v)>0.15)animTo(target,Math.min(420,200+Math.abs(v)*220));away=!near(target)}
+    setTA();
+  };
+  el.addEventListener("pointerup",onEnd); el.addEventListener("pointercancel",onEnd);
+  el.addEventListener("touchstart",e=>{if(e.touches.length>=2)abort()},{passive:true});
+  el.addEventListener("scroll",()=>{
+    if(g&&g.moved)return; if(o&&o.animating&&o.animating())return;
+    clearTimeout(endT);
+    endT=setTimeout(()=>{
+      if(g||(o&&o.animating&&o.animating()))return;
+      const h=homeFn();
+      if(Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){if(!near())animTo(h,240);away=false}else away=true;
+      setTA();
+    },90);
+  },{passive:true});
+  setTA();
+  return {abort,isAway:()=>away};
+}
 // Alerts: chip "⚠ N" (tap → first alert); a tap on a badge opens the action sheet (solved / notify / temporarily solved / Trello), Undo toast.
 (function(){
   const chip=document.getElementById("alert-chip");
@@ -1242,24 +1232,34 @@ ${opt("solved",T("act_solved"),st==="solved")}${opt("notify",T("act_notify"),st=
     wd={id:e.pointerId,x0:e.clientX,l0:sc.scrollLeft,moved:false,pts:[[e.clientX,e.timeStamp]],el:m}; try{m.setPointerCapture(e.pointerId)}catch(_){}});
   grid.addEventListener("pointermove",e=>{if(!wd||e.pointerId!==wd.id)return;const dx=e.clientX-wd.x0;
     if(!wd.moved){if(Math.abs(dx)<=6)return;wd.moved=true;sc.classList.add("dragging");hideTip()}
-    e.preventDefault(); sc.scrollLeft=wd.l0-dx; wd.pts.push([e.clientX,e.timeStamp]); while(wd.pts.length>2&&e.timeStamp-wd.pts[0][1]>100)wd.pts.shift();});
+    e.preventDefault();
+    const fromHome=Math.abs(wd.l0-todayScrollX())<=TODAY_STICK.nearPx(sc);
+    sc.scrollLeft=wd.l0-(fromHome?todayResist(dx,sc.clientWidth||window.innerWidth):dx);
+    wd.pts.push([e.clientX,e.timeStamp]); while(wd.pts.length>2&&e.timeStamp-wd.pts[0][1]>100)wd.pts.shift();});
   const wend=e=>{if(!wd||e.pointerId!==wd.id)return;const w=wd;wd=null;sc.classList.remove("dragging");if(!w.moved)return;
     sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0);
     const p0=w.pts[0],p1=w.pts[w.pts.length-1],dt=p1[1]-p0[1],v=dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0; // px/ms, + = finger right
+    const finger=p1[0]-w.x0, vw=sc.clientWidth||window.innerWidth;
+    const startedHome=Math.abs(w.l0-todayScrollX())<=TODAY_STICK.nearPx(sc);
+    if(startedHome&&Math.abs(finger)<TODAY_STICK.COMMIT*vw&&Math.abs(v)<TODAY_STICK.FLING){scrollCalTo(todayScrollX(),280);return}
     const k0=Math.round(weekOf(w.l0)), moved=(sc.scrollLeft-w.l0)/W7(); // + = later
     let k=Math.round(weekOf(sc.scrollLeft-v*180)); // flick projects a little further
     if(k===k0&&(Math.abs(moved)>0.08||Math.abs(v)>0.3)) k=k0+((moved||-v)>0?1:-1);
-    scrollCalTo(base()+k*W7(),320);};
+    const dest=base()+k*W7();
+    if(Math.abs(dest-todayScrollX())<=TODAY_STICK.nearPx(sc)) scrollCalTo(todayScrollX(),320);
+    else scrollCalTo(dest,320);};
   grid.addEventListener("pointerup",wend);grid.addEventListener("pointercancel",wend);
 })();
 
-// mouse drag-to-pan (touch uses native momentum scrolling)
-let drag=null;
-// No pointer capture on pointerdown (that retargets the tap away from the bar); capture only once a real drag starts (>5px).
-sc.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||e.button!==0)return;drag={x:e.clientX,l:sc.scrollLeft,m:false,cap:false,id:e.pointerId}});
-sc.addEventListener("pointermove",e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x;if(!drag.m&&Math.abs(dx)>5){drag.m=true;sc.classList.add("dragging");try{sc.setPointerCapture(e.pointerId);drag.cap=true}catch(_){}}if(drag.m)sc.scrollLeft=drag.l-dx});
-const up=e=>{if(!drag)return;const m=drag.m,cap=drag.cap;drag=null;sc.classList.remove("dragging");if(cap){try{sc.releasePointerCapture(e.pointerId)}catch(_){}};if(m){sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0)}};
-sc.addEventListener("pointerup",up);sc.addEventListener("pointercancel",up);
+// t243u: horizontal swipe resistance on the calendar (mouse + touch). Capture starts only after a
+// real horizontal drag (>6px) so a tap still hits the bar. Vertical pans are left alone (shell).
+hookTodayStick(sc,todayScrollX,{
+  animate:(x,ms)=>scrollCalTo(x,ms),
+  animating:()=>!!SC_ANIM,
+  markDrag:()=>{sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0)},
+  homeTouch:"pan-y", awayTouch:"pan-x pan-y"
+});
+window.goToday=goToday;window.todayScrollX=todayScrollX;window.TODAY_STICK=TODAY_STICK;
 
 // Custom stay/uklidy tooltip: hover on desktop, tap/click on mobile.
 // Native title stays as a fallback; it is temporarily removed while the card is open.
@@ -1268,8 +1268,8 @@ let tipPinned=false, tipAnchor=null, tipTapAt=0;
 // Bar under a tap: bar hit boxes (32px) overlap neighbouring rows, so take the bar whose centre is nearest
 // among all bars at the point, else the nearest bar within a few px of it.
 function barAt(x,y){
-  // t240u: hit-test the full bar box (ends, half-day caps, labels). Geometry first so a sticky
-  // today overlay, a neighbouring .row, or a pointer-events:none label cannot swallow the tap.
+  // t240u: hit-test the full bar box (ends, half-day caps, labels). Geometry first so a
+  // neighbouring .row or a pointer-events:none label cannot swallow the tap.
   let best=null,bd=Infinity;
   const bars=grid.querySelectorAll(".bar");
   for(const b of bars){
@@ -1408,7 +1408,7 @@ grid.addEventListener("mouseout",e=>{if(!fineHover()||tipPinned)return;const b=e
 grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".pday");if(!b)return;hideTip();if(window.openParkingFor)window.openParkingFor(b.dataset.ymd)});
 const hideOnScroll=()=>{if(Date.now()-tipTapAt<450)return;hideTip()};
 sc.addEventListener("scroll",hideOnScroll,{passive:true});
-sc.addEventListener("pointermove",e=>{if(drag&&drag.m) hideTip()});
+sc.addEventListener("pointermove",e=>{if(sc.classList.contains("dragging")) hideTip()});
 
 document.getElementById("shell").addEventListener("scroll",hideOnScroll,{passive:true});
 document.addEventListener("keydown",e=>{if(e.key==="Escape") hideTip()});
@@ -1601,25 +1601,6 @@ let UK_TODAY_N=null;
     uk.style.display="block";
     uk.style.left=(frac*UK_TODAY_W-1)+"px";
     uk.title=T("now_title",zoneLabel(frac),`${String(p.hour).padStart(2,"0")}:${String(p.minute).padStart(2,"0")}`);
-  })();
-  // t239u: keep today's úklidy column pinned if CSS sticky is beaten by per-column zoom
-  (function(){
-    const uk=document.getElementById("uklidy"), col=uk&&uk.querySelector("[data-ukday0]");
-    if(!uk||!col) return;
-    let nat=null;
-    const measure=()=>{const prev=col.style.left; col.style.left=""; const r=uk.getBoundingClientRect(),c=col.getBoundingClientRect(); nat=uk.scrollLeft+(c.left-r.left); col.style.left=prev};
-    const pin=()=>{
-      if(nat==null) measure();
-      const r=uk.getBoundingClientRect(), c=col.getBoundingClientRect();
-      const stuck=uk.scrollLeft>nat+1;
-      col.classList.toggle("uk-stuck",stuck);
-      if(stuck&&c.left<r.left-1){col.style.position="relative"; col.style.left=(uk.scrollLeft-nat)+"px"; col.style.zIndex="4"}
-      else if(!stuck){col.style.left=""; col.style.position=""; col.style.zIndex=""}
-    };
-    window.syncUkTodayPin=()=>{nat=null; measure(); pin()};
-    uk.addEventListener("scroll",pin,{passive:true});
-    window.addEventListener("resize",()=>{nat=null; measure(); pin()});
-    requestAnimationFrame(()=>{measure(); pin()});
   })();
 })();
 
@@ -1821,7 +1802,7 @@ UKZ.fitZ=()=>{const uk=document.getElementById("uklidy"),w=uk?uk.clientWidth:0;i
   const uk=document.getElementById("uklidy"), wrap=document.getElementById("uk-wrap"), pill=document.getElementById("uk-zoom-reset");
   try{const z=parseFloat(localStorage.getItem(UKZ.KEY));if(z>=UKZ.MIN){UKZ.z=Math.min(UKZ.MAX,z);UKZ.auto=false}}catch(_){}
   if(UKZ.auto)UKZ.z=UKZ.fitZ();
-  const apply=z=>{UKZ.z=z;window.__ukz=z;uk.style.setProperty("--ukz",Math.abs(z-1)<.001?"1":String(z));uk.dataset.ukZoom=String(Math.round(z*100)/100);pill.hidden=UKZ.auto;pill.textContent=Math.round(z*100)+"%";if(window.syncUkTodayPin)requestAnimationFrame(window.syncUkTodayPin)};
+  const apply=z=>{UKZ.z=z;window.__ukz=z;uk.style.setProperty("--ukz",Math.abs(z-1)<.001?"1":String(z));uk.dataset.ukZoom=String(Math.round(z*100)/100);pill.hidden=UKZ.auto;pill.textContent=Math.round(z*100)+"%"};
   const pitch=z=>UKZ.COL*z+UKZ.GAP;
   // anchor = column index + fraction inside it, read from the real column boxes (today's column is wider than the rest)
   const colAt=sx=>{const cols=uk.children,n=cols.length;if(!n)return 0;let i=Math.max(0,Math.min(n-1,Math.floor((uk.scrollLeft+sx-uk.getBoundingClientRect().left)/pitch(UKZ.z))));
@@ -1880,8 +1861,6 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
     const ud=uk.querySelector("[data-ukday0]"); if(!ud)return;
     const r=uk.getBoundingClientRect(), u=ud.getBoundingClientRect();
     const d=delta(); if(d===null)return;
-    // t239u: once today's column is pinned at the left, further scroll cannot move the now-line
-    if(u.left<=r.left+2&&d>0) return;
     if(Math.abs(d)>=0.5)set(uk.scrollLeft+d);
   };
   const snap=()=>{const d=delta();if(d===null)return;stop();S.coupled=true;const from=uk.scrollLeft,t0=performance.now();
@@ -1908,6 +1887,24 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   align(); requestAnimationFrame(realign); setTimeout(realign,400);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(realign);
 })();
+// t243u: same swipe resistance on the úklidy strip (today column centred = home).
+let UK_ANIM=0;
+function scrollUkTo(x,ms=300){const uk=document.getElementById("uklidy");if(!uk)return;cancelAnimationFrame(UK_ANIM);const from=uk.scrollLeft,to=Math.max(0,Math.min(uk.scrollWidth-uk.clientWidth,x)),t0=performance.now();
+  if(Math.abs(to-from)<1){uk.scrollLeft=to;return}
+  const step=t=>{const p=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-p,3);uk.scrollLeft=from+(to-from)*e;if(p<1)UK_ANIM=requestAnimationFrame(step);else UK_ANIM=0};UK_ANIM=requestAnimationFrame(step)}
+function ukTodayX(){const uk=document.getElementById("uklidy"),col=uk&&uk.querySelector("[data-ukday0]");if(!uk||!col)return 0;
+  const ur=uk.getBoundingClientRect(),cr=col.getBoundingClientRect();
+  return Math.max(0,Math.min(uk.scrollWidth-uk.clientWidth,uk.scrollLeft+(cr.left-(ur.left+(uk.clientWidth-cr.width)/2))))}
+hookTodayStick(document.getElementById("uklidy"),ukTodayX,{
+  keepTouch:true, // leave touch-action:pan-x so .uk-list can still scroll vertically
+  animate:(x,ms)=>scrollUkTo(x,ms),
+  animating:()=>!!UK_ANIM,
+  ignore:e=>typeof UKZ!=="undefined"&&Date.now()-UKZ.at<80,
+  hold:v=>{if(typeof NOW_SYNC==="undefined")return;NOW_SYNC.held=!!v;if(v){NOW_SYNC.coupled=false;if(NOW_SYNC.anim){cancelAnimationFrame(NOW_SYNC.anim);NOW_SYNC.anim=0}}}
+});
+window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
+
+
 
 // Parking: one source of truth (only known cars, i.e. a plate in D.P, are counted). Tonight = sleeping here tonight (start<=today<end, same rule as the per-day P row);
 // Now = in-house at the current Prague time (after 15:00 check-in, before 10:00 checkout). One car per counted stay, by listing.
