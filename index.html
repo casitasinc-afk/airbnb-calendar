@@ -344,23 +344,19 @@ button.ms-smsb{align-self:flex-start;border:1.5px solid #059669!important;backgr
 #wp-panel.other #wp-body{opacity:.7;filter:grayscale(.18);background:#F3F4F6}
 #wp-panel.other{background:#F3F4F6}
 #wp-panel.other #wp-sub{color:#6B7280}
-.wp-day{margin:0 0 8px;padding:8px 8px 10px;border:1px solid #E5E7EB;border-radius:10px;background:#fff;display:grid;grid-template-columns:1fr 76px 1fr;grid-template-rows:auto auto;gap:4px 8px;align-items:start}
+.wp-day{margin:0 0 6px;padding:6px 8px 7px;border:1px solid #E5E7EB;border-radius:10px;background:#fff}
 #wp-panel.other .wp-day{background:#FAFAFA;border-color:#E5E7EB}
-.wp-h{font:800 11px/1.1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;margin:0;align-self:center}
-.wp-h.out{color:#B91C1C;grid-column:1;grid-row:1}
-.wp-h.in{color:#15803D;grid-column:3;grid-row:1}
-.wp-date{grid-column:2;grid-row:1;align-self:center;text-align:center;font:700 13px/1.25 system-ui,sans-serif;color:#111827;padding:0 2px}
+.wp-date{text-align:center;font:700 13px/1.25 system-ui,sans-serif;color:#111827;margin:0 0 4px}
+.wp-cols{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;align-items:start}
+.wp-h{font:800 11px/1.1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;margin:0 0 2px}
+.wp-h.out{color:#B91C1C}
+.wp-h.in{color:#15803D}
 .wp-side{min-width:0}
-.wp-side.out{grid-column:1;grid-row:2}
-.wp-side.in{grid-column:3;grid-row:2}
-.wp-list{margin:0;padding:0;list-style:none;font:600 12.5px/1.35 system-ui,sans-serif;color:#1F2937}
-.wp-list li{break-inside:avoid;margin:0 0 3px}
-.wp-list .n{font-weight:700}
-.wp-list .gc{font-weight:700;color:#111827}
-.wp-note{display:block;font:600 10px/1.25 system-ui,sans-serif;color:#92400E;letter-spacing:.01em}
+.wp-flow{margin:0;font:700 13px/1.4 system-ui,sans-serif;color:#1F2937}
+.wp-flow .n{font-weight:700}
+.wp-flow .gc{font-weight:700}
+.wp-note{font:700 11px/1.3 system-ui,sans-serif;color:#92400E;letter-spacing:.01em}
 .wp-note.turn{color:#9F1239}
-.wp-empty{color:#9CA3AF;font-weight:500}
-.wp-lm{display:inline-block;margin-right:2px;color:#B45309;font-weight:800}
 #wp-panel.swiping,#wp-panel.swiping *{user-select:none;-webkit-user-select:none}
 
 /* parking = in-flow bottom sheet under the cleaning panel (stacked, never overlapping) */
@@ -1674,6 +1670,17 @@ let UK_TODAY_N=null;
 // t253u: weekly cleaning plan (button above P). Derived from calendar DATA (D.R); nothing is sent.
 const WP_SHORT={Cassiopeia:"Cassio",Elizabeth:"Eliz"};
 const wpShort=n=>WP_SHORT[n]||n;
+// t255u: private Airbnb per-date notes (DATA.N) if a future scrape adds them. Never show codes or phones.
+const wpRedact=s=>String(s||"").replace(/(?i)\b(?:code|kód|kod|pin|passcode|combination)\s*[:#]?\s*\d{3,8}\b/g,"[…]").replace(/\+?\d[\d\s().-]{7,}\d/g,"[…]").trim();
+const wpAirbnbNote=(listing,iso,code)=>{
+  const N=D&&D.N; if(!N||typeof N!=="object")return "";
+  const pick=v=>{if(v==null)return ""; if(typeof v==="string")return wpRedact(v); return ""};
+  let s="";
+  if(N[listing]&&typeof N[listing]==="object")s=pick(N[listing][iso]);
+  if(!s&&N[iso]&&typeof N[iso]==="object")s=pick(N[iso][listing]);
+  if(!s&&code)s=pick(N[code]);
+  return s;
+};
 const WP_LONG=7; // nights at/above this = "dlouhý pobyt" on arrival (no invented extras)
 const WP=(function(){
   const btn=document.getElementById("wp-btn"), panel=document.getElementById("wp-panel"), body=document.getElementById("wp-body");
@@ -1698,9 +1705,9 @@ const WP=(function(){
     const outs=[],inns=[];
     (D.R||[]).forEach(r=>{
       const listing=r[1], nights=+r[5]||0, gc=r[6], guests=(gc==null||gc<0)?"":String(gc);
-      const base={listing,code:r[0],nights,guests,long:nights>=WP_LONG,lm:false,left:false,leftAt:"",turn:false};
-      if(r[4]===iso){const x=typeof depOf==="function"?depOf(r[0]):null;outs.push({...base,left:!!(x&&x[1]),leftAt:(x&&x[2])||""});}
-      if(r[3]===iso) inns.push({...base,lm:!!(typeof LAST_MIN!=="undefined"&&LAST_MIN.has(r[0]))});
+      const base={listing,code:r[0],nights,guests,long:nights>=WP_LONG,turn:false,note:wpAirbnbNote(listing,iso,r[0])};
+      if(r[4]===iso) outs.push({...base});
+      if(r[3]===iso) inns.push({...base});
     });
     const turns=new Set();
     outs.forEach(it=>{if(inns.some(x=>x.listing===it.listing))turns.add(it.listing)});
@@ -1709,16 +1716,16 @@ const WP=(function(){
     outs.sort(byOrd);inns.sort(byOrd);
     return {outs,inns};
   };
-  const li=(it,side)=>{
+  const chip=(it,side)=>{
     const notes=[];
-    if(it.turn)notes.push(`<span class="wp-note turn">${esc(T("wp_turn"))}</span>`);
-    if(side==="in"&&it.long)notes.push(`<span class="wp-note">${esc(T("wp_long"))}</span>`);
-    if(side==="out"&&it.left)notes.push(`<span class="wp-note">${esc(T("volno")+(it.leftAt?" "+it.leftAt:""))}</span>`);
+    if(it.turn)notes.push(T("wp_turn"));
+    if(side==="in"&&it.long)notes.push(T("wp_long"));
+    if(it.note)notes.push(it.note);
     const gc=(side==="in"&&it.guests)?` <span class="gc">(${esc(it.guests)})</span>`:"";
-    const lm=(side==="in"&&it.lm)?`<span class="wp-lm" title="${esc(T("last_min_short"))}">!</span> `:"";
-    return `<li>${lm}<span class="n">${esc(wpShort(it.listing))}</span>${gc}${notes.join("")}</li>`;
+    const nt=notes.length?` <span class="wp-note${it.turn?" turn":""}">${esc(notes.join(" "))}</span>`:"";
+    return `<span class="n">${esc(wpShort(it.listing))}</span>${gc}${nt}`;
   };
-  const side=(arr,k)=>`<div class="wp-h ${k}">${esc(T(k==="out"?"wp_out":"wp_in"))}</div><div class="wp-side ${k}">${arr.length?`<ul class="wp-list">${arr.map(it=>li(it,k)).join("")}</ul>`:`<div class="wp-empty">—</div>`}</div>`;
+  const side=(arr,k)=>`<div class="wp-side ${k}"><div class="wp-h ${k}">${esc(T(k==="out"?"wp_out":"wp_in"))}</div>${arr.length?`<div class="wp-flow">${arr.map((it,i)=>(i?" ":"")+chip(it,k)).join("")}</div>`:""}</div>`;
   const paint=()=>{
     clampOff();
     const start=weekStart(), days=[];
@@ -1734,7 +1741,8 @@ const WP=(function(){
       prev.disabled=off<=min; next.disabled=off>=max;}
     body.innerHTML=days.map(iso=>{
       const {outs,inns}=itemsFor(iso);
-      return `<section class="wp-day" data-wp-day="${esc(iso)}">${side(outs,"out")}<div class="wp-date">${esc(fmtDay(iso))}</div>${side(inns,"in")}</section>`;
+      if(!outs.length&&!inns.length)return "";
+      return `<section class="wp-day" data-wp-day="${esc(iso)}"><div class="wp-date">${esc(fmtDay(iso))}</div><div class="wp-cols">${side(outs,"out")}${side(inns,"in")}</div></section>`;
     }).join("");
   };
   const setOpen=on=>{
