@@ -353,6 +353,7 @@ button.ms-smsb{align-self:flex-start;border:1.5px solid #059669!important;backgr
 .wp-h.in{color:#15803D}
 .wp-side{min-width:0}
 .wp-flow{margin:0;font:700 13px/1.4 system-ui,sans-serif;color:#1F2937}
+.wp-chip{white-space:nowrap}
 .wp-flow .n{font-weight:700}
 .wp-flow .gc{font-weight:700}
 .wp-note{font:700 11px/1.3 system-ui,sans-serif;color:#92400E;letter-spacing:.01em}
@@ -1671,7 +1672,7 @@ let UK_TODAY_N=null;
 const WP_SHORT={Cassiopeia:"Cassio",Elizabeth:"Eliz"};
 const wpShort=n=>WP_SHORT[n]||n;
 // t255u: private Airbnb per-date notes (DATA.N) if a future scrape adds them. Never show codes or phones.
-const wpRedact=s=>String(s||"").replace(/(?i)\b(?:code|kód|kod|pin|passcode|combination)\s*[:#]?\s*\d{3,8}\b/g,"[…]").replace(/\+?\d[\d\s().-]{7,}\d/g,"[…]").trim();
+const wpRedact=s=>String(s||"").replace(/\b(?:code|kód|kod|pin|passcode|combination)\s*[:#]?\s*\d{3,8}\b/gi,"[…]").replace(/\+?\d[\d\s().-]{7,}\d/g,"[…]").trim();
 const wpAirbnbNote=(listing,iso,code)=>{
   const N=D&&D.N; if(!N||typeof N!=="object")return "";
   const pick=v=>{if(v==null)return ""; if(typeof v==="string")return wpRedact(v); return ""};
@@ -1721,9 +1722,9 @@ const WP=(function(){
     if(it.turn)notes.push(T("wp_turn"));
     if(side==="in"&&it.long)notes.push(T("wp_long"));
     if(it.note)notes.push(it.note);
-    const gc=(side==="in"&&it.guests)?` <span class="gc">(${esc(it.guests)})</span>`:"";
+    const gc=(side==="in"&&it.guests)?`&nbsp;<span class="gc">(${esc(it.guests)})</span>`:"";
     const nt=notes.length?` <span class="wp-note${it.turn?" turn":""}">${esc(notes.join(" "))}</span>`:"";
-    return `<span class="n">${esc(wpShort(it.listing))}</span>${gc}${nt}`;
+    return `<span class="wp-chip"><span class="n">${esc(wpShort(it.listing))}</span>${gc}${nt}</span>`;
   };
   const side=(arr,k)=>`<div class="wp-side ${k}"><div class="wp-h ${k}">${esc(T(k==="out"?"wp_out":"wp_in"))}</div>${arr.length?`<div class="wp-flow">${arr.map((it,i)=>(i?" ":"")+chip(it,k)).join("")}</div>`:""}</div>`;
   const paint=()=>{
