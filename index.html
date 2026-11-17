@@ -354,6 +354,9 @@ button.ms-smsb{align-self:flex-start;border:1.5px solid #059669!important;backgr
 .wp-side{min-width:0}
 .wp-flow{margin:0;font:700 13px/1.4 system-ui,sans-serif;color:#1F2937}
 .wp-chip{white-space:nowrap}
+.wp-flow.vert{display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.wp-flow.vert .wp-chip{display:block}
+.wp-day-notes{margin:3px 0 0;font:700 11px/1.35 system-ui,sans-serif;color:#92400E}
 .wp-flow .n{font-weight:700}
 .wp-flow .gc{font-weight:700}
 .wp-note{font:700 11px/1.3 system-ui,sans-serif;color:#92400E;letter-spacing:.01em}
@@ -1726,7 +1729,20 @@ const WP=(function(){
     const nt=notes.length?` <span class="wp-note${it.turn?" turn":""}">${esc(notes.join(" "))}</span>`:"";
     return `<span class="wp-chip"><span class="n">${esc(wpShort(it.listing))}</span>${gc}${nt}</span>`;
   };
-  const side=(arr,k)=>`<div class="wp-side ${k}"><div class="wp-h ${k}">${esc(T(k==="out"?"wp_out":"wp_in"))}</div>${arr.length?`<div class="wp-flow">${arr.map((it,i)=>(i?" ":"")+chip(it,k)).join("")}</div>`:""}</div>`;
+  // t257u: shorter side (and both sides when ≤3) stay vertical, one name per line.
+  // Only a side that would be much taller than the other wraps names inline.
+  const WP_SHORT_N=3;
+  const wpVert=(n,o)=>{if(n<=0)return true;if(n<=WP_SHORT_N&&o<=WP_SHORT_N)return true;if(n<=o)return true;return !(n>WP_SHORT_N&&n>=2*Math.max(o,1))};
+  const wpNotesForDay=(iso,used)=>{
+    const N=D&&D.N,out=[]; if(!N||typeof N!=="object")return out;
+    const seen=new Set(used||[]);
+    const add=(listing,txt)=>{const s=wpRedact(txt||"");if(!s||seen.has(listing))return;seen.add(listing);out.push({listing,note:s})};
+    if(N[iso]&&typeof N[iso]==="object")Object.entries(N[iso]).forEach(([l,v])=>typeof v==="string"&&add(l,v));
+    Object.entries(N).forEach(([l,days])=>{if(days&&typeof days==="object"&&typeof days[iso]==="string")add(l,days[iso])});
+    out.sort((a,b)=>a.listing.localeCompare(b.listing));
+    return out;
+  };
+  const side=(arr,k,vert)=>`<div class="wp-side ${k}"><div class="wp-h ${k}">${esc(T(k==="out"?"wp_out":"wp_in"))}</div>${arr.length?`<div class="wp-flow ${vert?"vert":"inline"}">${arr.map((it,i)=>(!vert&&i?" ":"")+chip(it,k)).join("")}</div>`:""}</div>`;
   const paint=()=>{
     clampOff();
     const start=weekStart(), days=[];
@@ -1742,8 +1758,10 @@ const WP=(function(){
       prev.disabled=off<=min; next.disabled=off>=max;}
     body.innerHTML=days.map(iso=>{
       const {outs,inns}=itemsFor(iso);
-      if(!outs.length&&!inns.length)return "";
-      return `<section class="wp-day" data-wp-day="${esc(iso)}"><div class="wp-date">${esc(fmtDay(iso))}</div><div class="wp-cols">${side(outs,"out")}${side(inns,"in")}</div></section>`;
+      const extra=wpNotesForDay(iso,[...outs,...inns].map(x=>x.listing));
+      if(!outs.length&&!inns.length&&!extra.length)return "";
+      const vOut=wpVert(outs.length,inns.length),vIn=wpVert(inns.length,outs.length);
+      return `<section class="wp-day" data-wp-day="${esc(iso)}"><div class="wp-date">${esc(fmtDay(iso))}</div><div class="wp-cols">${side(outs,"out",vOut)}${side(inns,"in",vIn)}</div>${extra.length?`<div class="wp-day-notes">${extra.map(n=>`<span class="wp-chip"><span class="n">${esc(wpShort(n.listing))}</span> <span class="wp-note">${esc(n.note)}</span></span>`).join(" ")}</div>`:""}</section>`;
     }).join("");
   };
   const setOpen=on=>{
