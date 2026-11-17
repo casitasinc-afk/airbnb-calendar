@@ -1332,26 +1332,31 @@ let tipPinned=false, tipAnchor=null, tipTapAt=0;
 // Bar under a tap: bar hit boxes (32px) overlap neighbouring rows, so take the bar whose centre is nearest
 // among all bars at the point, else the nearest bar within a few px of it.
 function barAt(x,y){
-  // t240u: hit-test the full bar box (ends, half-day caps, labels). Geometry first so a
-  // neighbouring .row or a pointer-events:none label cannot swallow the tap.
-  let best=null,bd=Infinity;
-  const bars=grid.querySelectorAll(".bar");
-  for(const b of bars){
-    const r=b.getBoundingClientRect();
-    if(!r.width||!r.height) continue;
-    if(x<r.left||x>r.right||y<r.top||y>r.bottom) continue;
-    const d=Math.abs(y-(r.top+r.bottom)/2);
-    if(d<bd){bd=d;best=b}
-  }
-  if(best) return best;
-  for(const b of bars){
-    const r=b.getBoundingClientRect();
-    if(x<r.left-8||x>r.right+8||y<r.top-6||y>r.bottom+6) continue;
-    const dx=x<r.left?r.left-x:x>r.right?x-r.right:0;
-    const d=dx*4+Math.abs(y-(r.top+r.bottom)/2);
-    if(d<bd){bd=d;best=b}
-  }
-  return best;
+  // t240u/t262u: hit-test the painted pill first (first–last pixel, full visual height),
+  // then the .bar box, then a small slop. Same-day neighbours split at their visual gap,
+  // so slop never crosses the turnover boundary into the other stay.
+  const bars=[...grid.querySelectorAll(".bar")];
+  const boxes=bars.map(b=>{
+    const inner=b.querySelector(".bar-inner")||b, r=inner.getBoundingClientRect(), r2=b.getBoundingClientRect();
+    return {b,r,r2,midY:(r.top+r.bottom)/2, midX:(r.left+r.right)/2};
+  }).filter(o=>o.r.width&&o.r.height);
+  const contains=(R,px,py,ox=0,oy=0)=>px>=R.left-ox&&px<=R.right+ox&&py>=R.top-oy&&py<=R.bottom+oy;
+  // Horizontal clamp: do not let slop cross the visual boundary with a same-row neighbour.
+  const edge=(o,side)=>{
+    let lim=side<0?o.r.left-8:o.r.right+8;
+    for(const q of boxes){
+      if(q.b===o.b) continue;
+      if(Math.abs(q.midY-o.midY)>12) continue;
+      if(side>0&&q.r.left>=o.r.right-1&&q.r.left<o.r.right+24) lim=Math.min(lim,(o.r.right+q.r.left)/2);
+      if(side<0&&q.r.right<=o.r.left+1&&q.r.right>o.r.left-24) lim=Math.max(lim,(q.r.right+o.r.left)/2);
+    }
+    return lim;
+  };
+  const pick=(pred,score)=>{let best=null,bd=Infinity;for(const o of boxes){if(!pred(o))continue;const d=score(o);if(d<bd){bd=d;best=o.b}}return best};
+  return pick(o=>contains(o.r,x,y),o=>Math.abs(y-o.midY))
+      || pick(o=>contains(o.r2,x,y),o=>Math.abs(y-(o.r2.top+o.r2.bottom)/2))
+      || pick(o=>{const L=edge(o,-1),R=edge(o,1);return x>=L&&x<=R&&y>=o.r.top-8&&y<=o.r.bottom+8;},
+             o=>{const dx=x<o.r.left?o.r.left-x:x>o.r.right?x-o.r.right:0;return dx*4+Math.abs(y-o.midY);});
 }
 function fineHover(){try{return window.matchMedia("(hover: hover) and (pointer: fine)").matches}catch(_){return true}}
 function stayCard(code){
@@ -1421,11 +1426,16 @@ function showTip(anchor, html, pinned){
   const r=anchor.getBoundingClientRect();
   const tw=tip.offsetWidth, th=tip.offsetHeight;
   const pad=8, vw=window.innerWidth, vh=window.innerHeight;
-  let left=r.left;
+  // t262u: use the on-screen slice of the bar. A long stay's r.right is far off-screen,
+  // and right-aligning the card to it parked the tip past the viewport — taps on the
+  // visible ends looked dead even though the card had opened.
+  const visL=Math.max(r.left, pad), visR=Math.min(r.right, vw-pad);
+  let left=visL;
   let top=r.bottom+6;
   if(top+th>vh-pad) top=r.top-th-6;
-  if(left+tw>vw-pad) left=Math.max(pad, r.right-tw);
+  if(left+tw>vw-pad) left=Math.max(pad, visR-tw);
   if(left<pad) left=pad;
+  if(left+tw>vw-pad) left=Math.max(pad, vw-pad-tw);
   if(top<pad) top=pad;
   if(top+th>vh-pad) top=Math.max(pad, vh-pad-th);
   tip.style.left=left+"px";
@@ -1447,7 +1457,7 @@ function hookTip(root, selector, htmlOf){
     hideTip();
   });
   root.addEventListener("click",e=>{
-    if(root===grid&&sc.dataset.justDragged) return;
+    if(root===grid&&(sc.dataset.justDragged||sc.dataset.stayTapped)) return;
     const b=root===grid?barAt(e.clientX,e.clientY):e.target.closest(selector);
     if(!b||!root.contains(b)){
       if(!e.target.closest("#tip")) hideTip();
@@ -1458,6 +1468,32 @@ function hookTip(root, selector, htmlOf){
   });
 }
 hookTip(grid, ".bar", b=>b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||""));
+// t262u: on a phone the stay card must open from a tap on any pixel of the painted bar
+// (ends, caps, labels, empty middle of a long stay). A click can be swallowed by the
+// t243 today-snap or a slight finger move, so a short pointerup is the source of truth.
+(function(){
+  const TAP=12; let ptr=null;
+  const openAt=(x,y)=>{
+    if(sc.dataset.justDragged) return false;
+    const b=barAt(x,y); if(!b) return false;
+    tipTapAt=Date.now(); showTip(b, b.dataset.code?stayCard(b.dataset.code):(b.dataset.t||""), true);
+    sc.dataset.stayTapped="1"; setTimeout(()=>delete sc.dataset.stayTapped,400);
+    return true;
+  };
+  grid.addEventListener("pointerdown",e=>{
+    if(e.isPrimary===false) return;
+    if(e.pointerType==="mouse"&&e.button!==0) return;
+    if(e.target.closest&&e.target.closest(".pday,.months,#tip")) {ptr=null;return;}
+    ptr={id:e.pointerId,x:e.clientX,y:e.clientY};
+  },{passive:true});
+  grid.addEventListener("pointerup",e=>{
+    if(!ptr||e.pointerId!==ptr.id) return;
+    const p=ptr; ptr=null;
+    if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>TAP) return;
+    openAt(e.clientX,e.clientY);
+  },{passive:true});
+  grid.addEventListener("pointercancel",e=>{if(ptr&&e.pointerId===ptr.id)ptr=null},{passive:true});
+})();
 function pdayCard(el){
   const i=+el.dataset.pday, pk=PARK_DAY[i]; if(!pk) return "";
   const d=addDays(origin,i), ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -2066,7 +2102,7 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   const home=()=>S.home;
   const delta=()=>{const ud=uk.querySelector("[data-ukday0]");if(!ud)return null;const r=uk.getBoundingClientRect(),u=ud.getBoundingClientRect();if(!r.width)return null;
     return u.left-(r.left+(uk.clientWidth-u.width)/2-(SWAP.on?0:sc.scrollLeft-home()))}; // swapped: the calendar is tucked away → just centre today
-  const set=v=>{uk.scrollLeft=v;S.prog=uk.scrollLeft};
+  const set=v=>{S.prog=v;uk.scrollLeft=v;S.prog=uk.scrollLeft}; // t262u: mark own write before the scroll event, else hideTip fires
   const stop=()=>{if(S.anim)cancelAnimationFrame(S.anim);S.anim=0};
   const align=()=>{
     const ud=uk.querySelector("[data-ukday0]"); if(!ud)return;
@@ -2082,7 +2118,11 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   sc.addEventListener("scroll",()=>{if(S.coupled){stop();align()}else schedEnd()},{passive:true});
   uk.addEventListener("scroll",()=>{
     if(S.prog>=0&&Math.abs(uk.scrollLeft-S.prog)<1)return; // our own write
-    S.prog=-1;stop();S.coupled=false;hideTip();schedEnd();
+    S.prog=-1;stop();S.coupled=false;
+    // t262u: SAME 450 ms grace as hideOnScroll — auto-align after scrolling to a stay's
+    // ends was dismissing the card, so only the already-visible middle seemed tappable.
+    if(Date.now()-(typeof tipTapAt==="number"?tipTapAt:0)>=450) hideTip();
+    schedEnd();
   },{passive:true});
   const hold=()=>{S.held=true;stop()};
   const release=()=>{if(!S.held)return;S.held=false;schedEnd()};
