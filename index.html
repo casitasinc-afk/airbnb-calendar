@@ -1602,25 +1602,25 @@ function ecPaint(){document.querySelectorAll(".uk-row [data-ec]").forEach(b=>{co
     const a=(D.R||[]).find(x=>x[1]===lst&&x[3]===iso&&x[0]!==row.dataset.code),on=!!(a&&ecSt(a[0])==="ok"&&ecInfo(a[0]));let p=row.querySelector(".ecprio");
     if(on&&!p)row.querySelector(".nm").insertAdjacentHTML("afterend",`<span class="ecprio" data-ec-prio="${esc(a[0])}">${esc(T("ec_prio"))}</span>`);else if(!on&&p)p.remove()});
   if(window.MSG_RERENDER)window.MSG_RERENDER()}
-const EC_DRAFT={en:"Hello {n}, good news – an earlier check-in at {t} is fine for us. The houseboat will be ready for you then. See you soon! Gabriela & Team",
- de:"Hallo {n}, gute Nachricht – ein früherer Check-in um {t} ist für uns in Ordnung. Das Hausboot ist dann für Sie bereit. Bis bald! Gabriela & Team",
- cs:"Dobrý den {n}, dobrá zpráva – dřívější příjezd v {t} je v pořádku. Hausbót pro Vás bude připravený. Těšíme se! Gabriela & tým",
- sk:"Dobrý deň {n}, dobrá správa – skorší príchod o {t} je v poriadku. Hausbót bude pre Vás pripravený. Tešíme sa! Gabriela & tím",
- pl:"Dzień dobry {n}, dobra wiadomość – wcześniejsze zameldowanie o {t} jest w porządku. Houseboat będzie wtedy gotowy. Do zobaczenia! Gabriela & Team",
- fr:"Bonjour {n}, bonne nouvelle – une arrivée anticipée à {t} nous convient. Le houseboat sera prêt pour vous. À bientôt ! Gabriela & l'équipe",
- es:"Hola {n}, buenas noticias: la llegada anticipada a las {t} está bien para nosotros. El houseboat estará listo para ustedes. ¡Hasta pronto! Gabriela y equipo",
- it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. L'houseboat sarà pronto per voi. A presto! Gabriela & Team",
- nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. De woonboot is dan voor u klaar. Tot snel! Gabriela & Team",
+const EC_DRAFT={en:"Hello {n}, good news – an earlier check-in at {t} is fine for us. The houseboat will be ready for you then. See you soon! Gabriela and the houseboat team",
+ de:"Hallo {n}, gute Nachricht – ein früherer Check-in um {t} ist für uns in Ordnung. Das Hausboot ist dann für Sie bereit. Bis bald! Gabriela und das Hausboot-Team",
+ cs:"Dobrý den {n}, dobrá zpráva – dřívější příjezd v {t} je v pořádku. Hausbót pro Vás bude připravený. Těšíme se! Gabriela a tým hausbótů",
+ sk:"Dobrý deň {n}, dobrá správa – skorší príchod o {t} je v poriadku. Hausbót bude pre Vás pripravený. Tešíme sa! Gabriela a tím hausbótov",
+ pl:"Dzień dobry {n}, dobra wiadomość – wcześniejsze zameldowanie o {t} jest w porządku. Houseboat będzie wtedy gotowy. Do zobaczenia! Gabriela i zespół houseboatów",
+ fr:"Bonjour {n}, bonne nouvelle – une arrivée anticipée à {t} nous convient. Le houseboat sera prêt pour vous. À bientôt ! Gabriela et l'équipe des houseboats",
+ es:"Hola {n}, buenas noticias: la llegada anticipada a las {t} está bien para nosotros. El houseboat estará listo para ustedes. ¡Hasta pronto! Gabriela y el equipo de los houseboats",
+ it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. L'houseboat sarà pronto per voi. A presto! Gabriela e il team degli houseboat",
+ nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. De woonboot is dan voor u klaar. Tot snel! Gabriela en het woonbootteam",
  uk:"Вітаємо, {n}! Гарна новина – ранній заїзд о {t} для нас підходить. Хаусбот буде готовий. До зустрічі! Габріела та команда"};
-EC_DRAFT_HOUSE={en:"Hello {n}, good news – an earlier check-in at {t} is fine for us. The house will be ready for you then. See you soon! Gabriela & Team",
- de:"Hallo {n}, gute Nachricht – ein früherer Check-in um {t} ist für uns in Ordnung. Das Haus ist dann für Sie bereit. Bis bald! Gabriela & Team",
- cs:"Dobrý den {n}, dobrá zpráva – dřívější příjezd v {t} je v pořádku. Dům pro Vás bude připravený. Těšíme se! Gabriela & tým",
- sk:"Dobrý deň {n}, dobrá správa – skorší príchod o {t} je v poriadku. Dom bude pre Vás pripravený. Tešíme sa! Gabriela & tím",
- pl:"Dzień dobry {n}, dobra wiadomość – wcześniejsze zameldowanie o {t} jest w porządku. Dom będzie wtedy gotowy. Do zobaczenia! Gabriela & Team",
- fr:"Bonjour {n}, bonne nouvelle – une arrivée anticipée à {t} nous convient. La maison sera prête pour vous. À bientôt ! Gabriela & l'équipe",
- es:"Hola {n}, buenas noticias: la llegada anticipada a las {t} está bien para nosotros. La casa estará lista para ustedes. ¡Hasta pronto! Gabriela y equipo",
- it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. La casa sarà pronta per voi. A presto! Gabriela & Team",
- nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. Het huis is dan voor u klaar. Tot snel! Gabriela & Team",
+EC_DRAFT_HOUSE={en:"Hello {n}, good news – an earlier check-in at {t} is fine for us. The house will be ready for you then. See you soon! Gabriela and the team",
+ de:"Hallo {n}, gute Nachricht – ein früherer Check-in um {t} ist für uns in Ordnung. Das Haus ist dann für Sie bereit. Bis bald! Gabriela und das Team",
+ cs:"Dobrý den {n}, dobrá zpráva – dřívější příjezd v {t} je v pořádku. Dům pro Vás bude připravený. Těšíme se! Gabriela a tým",
+ sk:"Dobrý deň {n}, dobrá správa – skorší príchod o {t} je v poriadku. Dom bude pre Vás pripravený. Tešíme sa! Gabriela a tím",
+ pl:"Dzień dobry {n}, dobra wiadomość – wcześniejsze zameldowanie o {t} jest w porządku. Dom będzie wtedy gotowy. Do zobaczenia! Gabriela i zespół",
+ fr:"Bonjour {n}, bonne nouvelle – une arrivée anticipée à {t} nous convient. La maison sera prête pour vous. À bientôt ! Gabriela et l'équipe",
+ es:"Hola {n}, buenas noticias: la llegada anticipada a las {t} está bien para nosotros. La casa estará lista para ustedes. ¡Hasta pronto! Gabriela y el equipo",
+ it:"Ciao {n}, buone notizie – il check-in anticipato alle {t} va bene per noi. La casa sarà pronta per voi. A presto! Gabriela e il team",
+ nl:"Hallo {n}, goed nieuws – eerder inchecken om {t} is voor ons prima. Het huis is dan voor u klaar. Tot snel! Gabriela en het team",
  uk:"Вітаємо, {n}! Гарна новина – ранній заїзд о {t} для нас підходить. Будинок буде готовий. До зустрічі! Габріела та команда"};
 function ecDraft(lang,name,eta,listing){const t=String(eta||"").replace(/^~/,"");const pack=isHouse(listing)?(EC_DRAFT_HOUSE[lang]||EC_DRAFT_HOUSE.en):(EC_DRAFT[lang]||EC_DRAFT.en);return pack.replace("{n}",name||"").replace("{t}",t).replace("  "," ")}
 (function(){const pop=document.createElement("div");pop.id="ec-pop";pop.hidden=true;pop.setAttribute("role","dialog");pop.setAttribute("data-ec-pop","");document.body.appendChild(pop);let cur=null;
