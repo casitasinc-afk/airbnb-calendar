@@ -1483,6 +1483,17 @@ grid.addEventListener("mouseout",e=>{if(!fineHover()||tipPinned)return;const b=e
 grid.addEventListener("click",e=>{if(sc.dataset.justDragged)return;const b=e.target.closest(".pday");if(!b)return;hideTip();if(window.openParkingFor)window.openParkingFor(b.dataset.ymd)});
 const hideOnScroll=()=>{if(Date.now()-tipTapAt<450)return;hideTip()};
 sc.addEventListener("scroll",hideOnScroll,{passive:true});
+// t290u: stays that started left of the visible area keep their details (name, guests, car…) pinned at the left edge
+const PIN={list:null,on:new Set(),raf:0};
+function pinBars(){PIN.raf=0;if(!PIN.list||!PIN.list.length||!PIN.list[0].el.isConnected)PIN.list=[...document.querySelectorAll("#grid .bar")].map(el=>({el,inn:el.querySelector(".bar-inner"),L:parseFloat(el.style.left)||0,W:parseFloat(el.style.width)||0}));
+  const z=(typeof ZOOM==="number"&&ZOOM>0)?ZOOM:1,v=sc.scrollLeft/z,next=new Set();
+  for(const b of PIN.list){if(!b.inn||b.L>=v||b.L+b.W<=v)continue;const sh=Math.max(0,Math.min(b.W-64,v-b.L));if(sh<2)continue;next.add(b);b.inn.style.paddingLeft=(4+sh)+"px"}
+  for(const b of PIN.on)if(!next.has(b))b.inn.style.paddingLeft="";PIN.on=next}
+const pinSoon=()=>{if(!PIN.raf)PIN.raf=requestAnimationFrame(pinBars)};
+sc.addEventListener("scroll",pinSoon,{passive:true});window.addEventListener("resize",pinSoon);
+new MutationObserver(()=>{PIN.list=null;pinSoon()}).observe(document.getElementById("grid"),{childList:true});
+setTimeout(pinSoon,0);
+
 sc.addEventListener("pointermove",e=>{if(sc.classList.contains("dragging")) hideTip()});
 
 document.getElementById("shell").addEventListener("scroll",hideOnScroll,{passive:true});
