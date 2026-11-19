@@ -57,7 +57,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .nrow.odd{background:var(--row-odd)}
 .nrow span{font-size:13px;font-weight:500;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .divider{height:0;border-top:1px dashed var(--b-strong)}
-#scroller{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;cursor:grab;touch-action:pan-x pan-y;scrollbar-width:thin}
+#scroller{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;cursor:grab;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 #scroller.dragging{cursor:grabbing}
 #grid{position:relative}
 .months{height:14px;display:flex;border-bottom:1px solid var(--b-subtle);background:var(--bg)}
@@ -1166,81 +1166,6 @@ function goToday(){
   sc.dispatchEvent(new Event("scroll")); // realign the cleaning strip even if the calendar is already there
 }
 document.getElementById("today-btn").addEventListener("click",goToday);
-// t243u: when scrolled to the Today position, a short swipe meets resistance and springs back;
-// only a longer, deliberate drag (or a firm fling) moves the panel away. Once away, scrolling is
-// normal; coming back near Today settles onto that position again. Dnes button, bar taps,
-// vertical scroll and the parking swipe are unchanged.
-const TODAY_STICK={COMMIT:0.28,FLING:0.65,RUBBER:0.4,nearPx(el){const w=(el&&el.clientWidth)||window.innerWidth||390;return Math.max(24,.12*w)}};
-function todayResist(dx,vw){const t=TODAY_STICK.COMMIT*vw,s=Math.sign(dx)||1,a=Math.abs(dx);return a<=t?dx*TODAY_STICK.RUBBER:s*(t*TODAY_STICK.RUBBER+(a-t))}
-function hookTodayStick(el,homeFn,o){
-  const ST=TODAY_STICK; let g=null,endT=0,away=false;
-  const vw=()=>el.clientWidth||window.innerWidth||390;
-  const near=(x,pad)=>{const h=homeFn();return Math.abs((x==null?el.scrollLeft:x)-h)<=(pad==null?ST.nearPx(el):pad)};
-  const setTA=()=>{
-    el.dataset.todayStick=away?"away":"home";
-    if(o&&o.keepTouch)return;
-    el.style.touchAction=away?(o&&o.awayTouch||"pan-x pan-y"):(o&&o.homeTouch||"pan-y");
-  };
-  const animTo=(x,ms)=>{if(o&&o.animate)o.animate(x,ms);else el.scrollLeft=x};
-  const abort=()=>{if(!g)return;if(g.cap){try{el.releasePointerCapture(g.id)}catch(_){}}g=null;el.classList.remove("dragging");if(o&&o.hold)o.hold(false)};
-  el.addEventListener("pointerdown",e=>{
-    if(e.pointerType==="mouse"&&e.button!==0)return; if(e.isPrimary===false)return;
-    if(typeof PINCH_AT!=="undefined"&&Date.now()-PINCH_AT<80)return;
-    if(o&&o.ignore&&o.ignore(e))return;
-    cancelAnimationFrame(SC_ANIM); if(typeof UK_ANIM!=="undefined")cancelAnimationFrame(UK_ANIM);
-    if(o&&o.hold)o.hold(true);
-    g={id:e.pointerId,x0:e.clientX,y0:e.clientY,l0:el.scrollLeft,fromHome:near(),moved:false,axis:null,pts:[[e.clientX,e.timeStamp]],cap:false};
-  });
-  el.addEventListener("pointermove",e=>{
-    if(!g||e.pointerId!==g.id)return;
-    const dx=e.clientX-g.x0,dy=e.clientY-g.y0;
-    if(!g.axis){
-      if(Math.hypot(dx,dy)<6)return;
-      g.axis=Math.abs(dx)>Math.abs(dy)*1.15?"x":"y";
-      if(g.axis==="y"){if(o&&o.hold)o.hold(false);g=null;return}
-      g.moved=true;el.classList.add("dragging");if(typeof hideTip==="function")hideTip();
-      try{el.setPointerCapture(e.pointerId);g.cap=true}catch(_){}
-    }
-    if(g.axis!=="x")return;
-    if(e.cancelable)e.preventDefault();
-    g.pts.push([e.clientX,e.timeStamp]); while(g.pts.length>6&&e.timeStamp-g.pts[0][1]>80)g.pts.shift();
-    g.x1=e.clientX; g.t1=e.timeStamp;
-    el.scrollLeft=g.l0-(g.fromHome?todayResist(dx,vw()):dx);
-  },{passive:false});
-  const vel=()=>{if(!g||!g.pts.length)return 0;const p0=g.pts[0],p1=g.pts[g.pts.length-1],dt=p1[1]-p0[1];return dt>0?(p1[0]-p0[0])/dt:0};
-  const onEnd=e=>{
-    if(!g||e.pointerId!==g.id)return;
-    const s=g,v=(!g.pts.length)?0:(()=>{const p0=g.pts[0],p1=g.pts[g.pts.length-1],dt=p1[1]-p0[1];return dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0})();
-    g=null;el.classList.remove("dragging");
-    if(s.cap){try{el.releasePointerCapture(e.pointerId)}catch(_){}}
-    if(o&&o.hold)o.hold(false);
-    if(!s.moved)return;
-    if(o&&o.markDrag)o.markDrag();
-    const finger=(s.x1!=null?s.x1:s.x0)-s.x0,w=vw(),h=homeFn();
-    if(s.fromHome&&Math.abs(finger)<ST.COMMIT*w&&Math.abs(v)<ST.FLING){animTo(h,280);away=false;setTA();return}
-    let target=Math.max(0,Math.min(el.scrollWidth-el.clientWidth,el.scrollLeft-v*180));
-    if(Math.abs(target-h)<=ST.nearPx(el)||Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){animTo(h,260);away=false}
-    else{if(Math.abs(v)>0.15)animTo(target,Math.min(420,200+Math.abs(v)*220));away=!near(target)}
-    setTA();
-  };
-  el.addEventListener("pointerup",onEnd); el.addEventListener("pointercancel",onEnd);
-  el.addEventListener("touchstart",e=>{if(e.touches.length>=2)abort()},{passive:true});
-  el.addEventListener("scroll",()=>{
-    if(g&&g.moved)return;
-    clearTimeout(endT);
-    const kick=()=>{
-      if(g)return;
-      if(o&&o.animating&&o.animating()){endT=setTimeout(kick,90);return}
-      const h=homeFn();
-      if(Math.abs(el.scrollLeft-h)<=ST.nearPx(el)){if(Math.abs(el.scrollLeft-h)>1)animTo(h,240);away=false}
-      else away=true;
-      setTA();
-    };
-    endT=setTimeout(kick,90);
-  },{passive:true});
-  setTA();
-  return {abort,isAway:()=>away};
-}
 // Alerts: chip "⚠ N" (tap → first alert); a tap on a badge opens the action sheet (solved / notify / temporarily solved / Trello), Undo toast.
 (function(){
   const chip=document.getElementById("alert-chip");
@@ -1359,33 +1284,20 @@ ${opt("solved",T("act_solved"),st==="solved")}${opt("notify",T("act_notify"),st=
   grid.addEventListener("pointermove",e=>{if(!wd||e.pointerId!==wd.id)return;const dx=e.clientX-wd.x0;
     if(!wd.moved){if(Math.abs(dx)<=6)return;wd.moved=true;sc.classList.add("dragging");hideTip()}
     e.preventDefault();
-    const fromHome=Math.abs(wd.l0-todayScrollX())<=TODAY_STICK.nearPx(sc);
-    sc.scrollLeft=wd.l0-(fromHome?todayResist(dx,sc.clientWidth||window.innerWidth):dx);
+    sc.scrollLeft=wd.l0-dx;
     wd.pts.push([e.clientX,e.timeStamp]); while(wd.pts.length>2&&e.timeStamp-wd.pts[0][1]>100)wd.pts.shift();});
   const wend=e=>{if(!wd||e.pointerId!==wd.id)return;const w=wd;wd=null;sc.classList.remove("dragging");if(!w.moved)return;
     sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0);
     const p0=w.pts[0],p1=w.pts[w.pts.length-1],dt=p1[1]-p0[1],v=dt>0&&e.timeStamp-p1[1]<120?(p1[0]-p0[0])/dt:0; // px/ms, + = finger right
-    const finger=p1[0]-w.x0, vw=sc.clientWidth||window.innerWidth;
-    const startedHome=Math.abs(w.l0-todayScrollX())<=TODAY_STICK.nearPx(sc);
-    if(startedHome&&Math.abs(finger)<TODAY_STICK.COMMIT*vw&&Math.abs(v)<TODAY_STICK.FLING){scrollCalTo(todayScrollX(),280);return}
     const k0=Math.round(weekOf(w.l0)), moved=(sc.scrollLeft-w.l0)/W7(); // + = later
     let k=Math.round(weekOf(sc.scrollLeft-v*180)); // flick projects a little further
     if(k===k0&&(Math.abs(moved)>0.08||Math.abs(v)>0.3)) k=k0+((moved||-v)>0?1:-1);
     const dest=base()+k*W7();
-    if(Math.abs(dest-todayScrollX())<=TODAY_STICK.nearPx(sc)) scrollCalTo(todayScrollX(),320);
-    else scrollCalTo(dest,320);};
+    scrollCalTo(dest,320);};
   grid.addEventListener("pointerup",wend);grid.addEventListener("pointercancel",wend);
 })();
 
-// t243u: horizontal swipe resistance on the calendar (mouse + touch). Capture starts only after a
-// real horizontal drag (>6px) so a tap still hits the bar. Vertical pans are left alone (shell).
-hookTodayStick(sc,todayScrollX,{
-  animate:(x,ms)=>scrollCalTo(x,ms),
-  animating:()=>!!SC_ANIM,
-  markDrag:()=>{sc.dataset.justDragged="1";setTimeout(()=>delete sc.dataset.justDragged,0)},
-  homeTouch:"pan-y", awayTouch:"pan-x pan-y"
-});
-window.goToday=goToday;window.todayScrollX=todayScrollX;window.TODAY_STICK=TODAY_STICK;
+window.goToday=goToday;window.todayScrollX=todayScrollX;
 
 // Custom stay/uklidy tooltip: hover on desktop, tap/click on mobile.
 // Native title stays as a fallback; it is temporarily removed while the card is open.
@@ -2364,7 +2276,6 @@ function NOW_SYNC_UK(){return document.getElementById("uklidy")}
   align(); requestAnimationFrame(realign); setTimeout(realign,400);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(realign);
 })();
-// t243u: same swipe resistance on the úklidy strip (today column centred = home).
 let UK_ANIM=0;
 function scrollUkTo(x,ms=300){const uk=document.getElementById("uklidy");if(!uk)return;cancelAnimationFrame(UK_ANIM);const from=uk.scrollLeft,to=Math.max(0,Math.min(uk.scrollWidth-uk.clientWidth,x)),t0=performance.now();
   if(Math.abs(to-from)<1){uk.scrollLeft=to;return}
@@ -2372,13 +2283,6 @@ function scrollUkTo(x,ms=300){const uk=document.getElementById("uklidy");if(!uk)
 function ukTodayX(){const uk=document.getElementById("uklidy"),col=uk&&uk.querySelector("[data-ukday0]");if(!uk||!col)return 0;
   const ur=uk.getBoundingClientRect(),cr=col.getBoundingClientRect();
   return Math.max(0,Math.min(uk.scrollWidth-uk.clientWidth,uk.scrollLeft+(cr.left-(ur.left+(uk.clientWidth-cr.width)/2))))}
-hookTodayStick(document.getElementById("uklidy"),ukTodayX,{
-  keepTouch:true, // leave touch-action:pan-x so .uk-list can still scroll vertically
-  animate:(x,ms)=>scrollUkTo(x,ms),
-  animating:()=>!!UK_ANIM,
-  ignore:e=>typeof UKZ!=="undefined"&&Date.now()-UKZ.at<80,
-  hold:v=>{if(typeof NOW_SYNC==="undefined")return;NOW_SYNC.held=!!v;if(v){NOW_SYNC.coupled=false;if(NOW_SYNC.anim){cancelAnimationFrame(NOW_SYNC.anim);NOW_SYNC.anim=0}}}
-});
 window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
 
 
