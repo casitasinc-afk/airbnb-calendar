@@ -103,9 +103,9 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .nowline{position:absolute;top:0;width:2px;height:100%;background:repeating-linear-gradient(to bottom,rgba(255,56,92,.7) 0 1.5px,transparent 1.5px 3px);pointer-events:none;z-index:6} /* dotted 2px red (70%), dense 1.5px dots / 1.5px gaps (positions unchanged) */
 .nowline.head{top:14px;height:calc(var(--head-h) - 14px);box-shadow:none;z-index:5}
 /* t239u: parking fullscreen (tap open); swipe-open keeps the sheet height */
-#park-fullbar{display:none;align-items:center;gap:8px;flex:0 0 auto;padding:6px 10px;border-bottom:1px solid #E5E7EB;background:#fff;z-index:1}
-#park-fullbar .pf-title{flex:1;min-width:0;font:700 15px/1.2 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#park-back,#park-x{flex-shrink:0;width:36px;height:36px;border:0;border-radius:999px;background:#F3F4F6;color:#111827;font:700 18px/36px system-ui,sans-serif;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+#park-fullbar{display:none;align-items:center;gap:10px;flex:0 0 auto;padding:8px 10px;border-bottom:1px solid #E5E7EB;background:#fff;z-index:1}
+#park-fullbar .pf-title{flex:1;min-width:0;font:700 16px/1.2 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#park-back,#park-x{flex-shrink:0;width:48px;height:48px;min-width:44px;min-height:44px;border:0;border-radius:999px;background:#F3F4F6;color:#111827;font:700 36px/1 system-ui,sans-serif;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #park-back:active,#park-x:active{background:#E5E7EB}
 #park-panel.full{position:fixed;inset:0;width:100%!important;height:100%!important;max-height:none;margin:0;align-self:stretch;border-radius:0;border:0;box-shadow:none;z-index:9600;opacity:1;display:flex;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);background:#fff}
 #park-panel.full #park-fullbar{display:flex}
