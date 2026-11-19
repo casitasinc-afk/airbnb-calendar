@@ -51,7 +51,7 @@ html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple
 .bar.hit{z-index:7}
 .bar.hit .bar-inner{box-shadow:0 0 0 2px #1F78B4,0 0 8px rgba(31,120,180,.55)}
 #shell{display:flex;flex:0 1 auto;min-height:40px;border:1px solid var(--b-default);border-radius:8px;overflow-x:hidden;overflow-y:auto;background:var(--bg);user-select:none;-webkit-user-select:none;align-items:flex-start}
-#names{width:var(--name-w);flex-shrink:0;border-right:1px solid var(--b-default);background:var(--bg);z-index:2}
+#names{width:max-content;max-width:var(--name-w);/* t295u: fit the longest name */flex-shrink:0;border-right:1px solid var(--b-default);background:var(--bg);z-index:2}
 .nhead{height:calc(var(--head-h) + 20px);border-bottom:1px solid var(--b-default);display:flex;align-items:flex-end;padding:0 8px 4px;font-size:12px;font-weight:500;color:var(--t3)}
 .nrow{height:var(--row-h);display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid var(--b-subtle);background:var(--row-even)}
 .nrow.odd{background:var(--row-odd)}
