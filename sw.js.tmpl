@@ -31,3 +31,37 @@ self.addEventListener("fetch", (e) => {
       .catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match("index.html")))
   );
 });
+
+// t319u: Web Push for newly red inbox threads (even when the app is closed).
+self.addEventListener("push", (e) => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (_) {}
+  const title = data.title || "🔴 Nová červená zpráva";
+  const payload = data.data || data;
+  const opts = {
+    body: data.body || "",
+    tag: data.tag || "red-msg",
+    renotify: true,
+    data: payload,
+    icon: "icons/icon-192.png",
+    badge: "icons/icon-192.png"
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const d = e.notification.data || {};
+  const url = d.url || (self.registration.scope + (d.id ? ("#msg=" + encodeURIComponent(d.id)) : ""));
+  e.waitUntil((async () => {
+    const clis = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of clis) {
+      if (c.url && c.url.startsWith(self.registration.scope) && "focus" in c) {
+        try { c.postMessage({ type: "open-msg", id: d.id || "", url }); } catch (_) {}
+        await c.focus();
+        return;
+      }
+    }
+    await self.clients.openWindow(url || self.registration.scope);
+  })());
+});
