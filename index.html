@@ -646,6 +646,7 @@ body.swapped #uk-handle>svg,body.swapped #uk-handle .sheet-grab{display:none}
 #uk-wrap .uk-col{zoom:var(--ukz,1)}
 #uk-zoom-reset{margin-left:auto;flex-shrink:0;height:18px;padding:0 7px;border:0;border-radius:999px;background:var(--accent-subtle);color:var(--accent);font:600 10px/18px system-ui,sans-serif;letter-spacing:0;text-transform:none;cursor:pointer;touch-action:manipulation}
 #uk-zoom-reset[hidden]{display:none}
+#uk-zoom-reset,#zoom-reset{display:none!important} /* t293u: zoom % not shown */
 #uk-wrap #uklidy{border-top:0}
 #uk-handle{position:relative;height:30px;flex:0 0 30px;display:flex;align-items:center;gap:5px;padding:9px 6px 0;border-top:1px solid var(--b-subtle);cursor:ns-resize;user-select:none;-webkit-user-select:none;touch-action:none;color:var(--t3);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 #uk-handle svg{flex-shrink:0;transition:transform 360ms cubic-bezier(.32,.72,0,1)}
@@ -1086,20 +1087,28 @@ const sc=document.getElementById("scroller");
 const ZMIN=0.9, ZMAX=1.8, /* t217u: 90–180 % */ ZKEY="calZoom", HEAD_TOTAL=HEAD_H+20;
 const shellEl=document.getElementById("shell"), namesEl=document.getElementById("names"), nheadEl=namesEl.querySelector(".nhead");
 let ZOOM=1, PINCH_AT=0;
-try{const z=parseFloat(localStorage.getItem(ZKEY));if(z>=ZMIN)ZOOM=Math.min(ZMAX,z)}catch(_){}
+try{const z=parseFloat(localStorage.getItem(ZKEY));if(z>=0.5)ZOOM=Math.min(ZMAX,z)}catch(_){}
 function applyZoom(z){
   ZOOM=z; grid.style.zoom=Math.abs(z-1)<.001?"":String(z); shellEl.dataset.zoom=String(Math.round(z*100)/100);
   namesEl.style.setProperty("--row-h",(ROW_H*z)+"px"); namesEl.style.setProperty("--nzf",String(Math.max(.8,Math.min(1.25,z))));
   nheadEl.style.height=(HEAD_TOTAL*z)+"px";
-  const zb=document.getElementById("zoom-reset"); if(zb){zb.hidden=Math.abs(z-1)<.01; zb.textContent=Math.round(z*100)+"% · 1×";}
+  const zb=document.getElementById("zoom-reset"); if(zb){zb.hidden=true;} /* t293u: no zoom % pill */
 }
 function contentAt(sx,sy){const r=sc.getBoundingClientRect(),q=shellEl.getBoundingClientRect();return {cx:(sc.scrollLeft+sx-r.left)/ZOOM,cy:(shellEl.scrollTop+sy-q.top)/ZOOM}}
-function zoomAt(z,c,sx,sy){
-  z=Math.min(ZMAX,Math.max(ZMIN,z)); applyZoom(z);
+function zoomAt(z,c,sx,sy,free){
+  z=free?z:Math.min(ZMAX,Math.max(ZMIN,z)); applyZoom(z);
   const r=sc.getBoundingClientRect(),q=shellEl.getBoundingClientRect();
   sc.scrollLeft=c.cx*z-(sx-r.left); shellEl.scrollTop=c.cy*z-(sy-q.top);
   sc.dispatchEvent(new Event("scroll")); // now-line sync with the cleaning strip realigns
 }
+// t293u: zoom snap — after a pinch, if the zoom is near the level where ALL listings fit the calendar's height, snap to exactly that level
+function fitZoom(){const z0=ZOOM,st=shellEl.scrollTop,sl=sc.scrollLeft;let lo=0.5,hi=ZMAX;
+  const fits=z=>{applyZoom(z);return shellEl.scrollHeight<=shellEl.clientHeight+1};
+  if(fits(hi))lo=hi;else for(let i=0;i<9;i++){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}
+  applyZoom(z0);shellEl.scrollTop=st;sc.scrollLeft=sl;return lo}
+function snapZoom(){const zf=fitZoom();if(Math.abs(ZOOM/zf-1)>0.18||Math.abs(ZOOM-zf)<.003)return;
+  const r=sc.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+4,c=contentAt(x,y),z0=ZOOM,t0=performance.now();
+  const step=t=>{const p=Math.min(1,(t-t0)/180),e=1-Math.pow(1-p,3);zoomAt(z0+(zf-z0)*e,c,x,y,true);if(p<1)requestAnimationFrame(step);else{shellEl.scrollTop=0;saveZoom()}};requestAnimationFrame(step)}
 let zSaveT=0; function saveZoom(){clearTimeout(zSaveT);zSaveT=setTimeout(()=>{try{localStorage.setItem(ZKEY,String(Math.round(ZOOM*1000)/1000))}catch(_){}},120)}
 function markPinched(){PINCH_AT=Date.now();sc.dataset.justDragged="1";setTimeout(()=>{if(Date.now()-PINCH_AT>=380)delete sc.dataset.justDragged},400)}
 (function(){
@@ -1120,7 +1129,7 @@ function markPinched(){PINCH_AT=Date.now();sc.dataset.justDragged="1";setTimeout
   const end=e=>{
     if(!pin||e.touches.length>=2) return;
     if(pin.raf){cancelAnimationFrame(pin.raf);if(pin.last)zoomAt(pin.last.z,pin.c,pin.last.x,pin.last.y)}
-    pin=null; markPinched(); saveZoom();
+    pin=null; markPinched(); saveZoom(); snapZoom();
   };
   shellEl.addEventListener("touchend",end); shellEl.addEventListener("touchcancel",end);
   // desktop: ctrl+wheel and trackpad pinch (Chrome/Edge/Firefox send ctrl+wheel)
@@ -1128,13 +1137,13 @@ function markPinched(){PINCH_AT=Date.now();sc.dataset.justDragged="1";setTimeout
     if(!e.ctrlKey) return;
     e.preventDefault(); hideTip();
     const dy=Math.max(-40,Math.min(40,e.deltaY*(e.deltaMode===1?16:1)));
-    zoomAt(ZOOM*Math.exp(-dy*0.01),contentAt(e.clientX,e.clientY),e.clientX,e.clientY); saveZoom();
+    zoomAt(ZOOM*Math.exp(-dy*0.01),contentAt(e.clientX,e.clientY),e.clientX,e.clientY); saveZoom(); clearTimeout(window.__wzT); window.__wzT=setTimeout(snapZoom,250);
   },{passive:false});
   // Safari (macOS trackpad / iOS): gesture events; block page zoom over the calendar
   let gz=null;
   shellEl.addEventListener("gesturestart",e=>{e.preventDefault();if(pin)return;gz={z0:ZOOM,c:contentAt(e.clientX,e.clientY)}});
   shellEl.addEventListener("gesturechange",e=>{e.preventDefault();if(pin||!gz)return;zoomAt(gz.z0*e.scale,gz.c,e.clientX,e.clientY)});
-  shellEl.addEventListener("gestureend",e=>{e.preventDefault();if(gz){gz=null;saveZoom()}});
+  shellEl.addEventListener("gestureend",e=>{e.preventDefault();if(gz){gz=null;saveZoom();snapZoom()}});
   // double-tap on empty grid area → back to 1×
   let lastEmpty=null;
   grid.addEventListener("click",e=>{
