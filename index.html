@@ -308,6 +308,7 @@ button.ms-smsb{align-self:flex-start;border:1.5px solid #059669!important;backgr
 #msg-chip .mi{font-size:24px;line-height:1}
 #meta .m-clk{vertical-align:-2px;margin-right:3px}
 #msg-chip.urg{background:#DC2626;color:#fff}
+#msg-chip.lv-red{background:#DC2626;color:#fff}#msg-chip.lv-yellow{background:#FACC15;color:#422006}#msg-chip.lv-green{background:#22C55E;color:#fff}
 #msg-sheet{position:fixed;inset:0;z-index:10003;display:flex;align-items:flex-end;justify-content:center;background:rgba(17,24,39,.38)}
 #msg-sheet[hidden]{display:none}
 #msg-sheet .ms-box{width:min(520px,100%);box-sizing:border-box;max-height:86vh;overflow:auto;background:#fff;color:#111827;border-radius:16px 16px 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom));font:14px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;box-shadow:0 -4px 22px rgba(0,0,0,.22)}
@@ -2873,14 +2874,18 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
     return c};
   const sh=document.createElement("div");sh.id="msg-sheet";sh.hidden=true;sh.setAttribute("data-msg-sheet","");document.body.appendChild(sh);window.MSG_ZOOM=panelZoom(sh,"msgZoom");
   const dm=d=>d?String(d).slice(5).split("-").reverse().join("."):"";
+  // t294u: the ✉ button takes the colour of the most urgent waiting thread: red, else yellow, else green
+  let INB_AT=0,INB_OK=false;
+  const inboxLvl=()=>{if(!INB_OK)return "";const L=ITEMS.filter(t=>!(typeof archGet==="function"&&archGet(t.id))).map(clsOf);return L.includes("red")?"red":L.includes("yellow")?"yellow":"green"};
   function paint(){const b=document.getElementById("msg-chip");if(!b)return;const n=C?(C.messages||0)+(C.inquiries||0):null,u=C?(C.messages_urgent||0)+(C.inquiries_urgent||0):0;
-    b.hidden=false;b.classList.toggle("urg",u>0);b.innerHTML='<span class="mi">✉</span>'+(n==null?"":"<span>"+n+"</span>");b.dataset.msgCount=n==null?"":String(n);b.title=T("msg_title");b.setAttribute("aria-label",T("msg_title"))}
+    b.hidden=false;const lv=inboxLvl();b.classList.toggle("urg",lv?lv==="red":u>0);["red","yellow","green"].forEach(k=>b.classList.toggle("lv-"+k,lv===k));b.dataset.msgLvl=lv||"";b.innerHTML='<span class="mi">✉</span>'+(n==null?"":"<span>"+n+"</span>");b.dataset.msgCount=n==null?"":String(n);b.title=T("msg_title");b.setAttribute("aria-label",T("msg_title"))}
   new MutationObserver(()=>{const b=document.getElementById("msg-chip");if(b&&b.hidden)paint()}).observe(document.body,{childList:true,subtree:true});
   async function load(){const pin=pinGet();if(!pin)return;let c;try{c=await sbRpc("get_msg_counts",{p_pin:pin})}catch(_){return}
     if(c&&c.ok){C=c;paint()}else if(c&&(c.error==="pin_invalid"||c.error==="pin_not_set"))pinSet("");
-    if(OPEN){let r;try{r=await sbRpc("get_msg_inbox",{p_pin:pin})}catch(_){return}if(r&&r.ok){ITEMS=r.items||[];archReconcile(ITEMS);const ae=document.activeElement;if(!CF&&!(ae&&ae.matches&&ae.matches("[data-cm-txt]")))render()}}
+    if(OPEN||Date.now()-INB_AT>45e3){INB_AT=Date.now();let r;try{r=await sbRpc("get_msg_inbox",{p_pin:pin})}catch(_){return}if(r&&r.ok){ITEMS=r.items||[];INB_OK=true;archReconcile(ITEMS);paint();if(OPEN){const ae=document.activeElement;if(!CF&&!(ae&&ae.matches&&ae.matches("[data-cm-txt]")))render()}}}
     const ids=Object.keys(MINE).filter(i=>MINE[i].s==="pending");if(ids.length){try{const r=await sbRpc("msg_action_status",{p_ids:ids});for(const x of (r&&r.items)||[]){if(MINE[x.id])MINE[x.id].s=x.status}}catch(_){}if(OPEN&&!CF)render()}}
   LIVE.on("msg",load);
+  setTimeout(load,1200);setInterval(()=>{if(!OPEN&&!document.hidden)load()},60e3); // t294u: keep the ✉ colour current
   // t233u: while a custom message is being polished on the box, look for the result every 20 s
   setInterval(()=>{if(OPEN&&Object.keys(POL).length)load()},20e3);window.MSG_RERENDER=()=>{if(OPEN&&!CF)render()};
   const stTxt=t=>t.status&&t.status!=="open"&&!(t.kind==="message"&&/^waiting/.test(t.status))?T("msg_st_"+t.status):"";
