@@ -3209,7 +3209,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
     if(c&&c.ok){C=c;paint()}else if(c&&(c.error==="pin_invalid"||c.error==="pin_not_set"))pinSet("");
     if(OPEN||Date.now()-INB_AT>45e3){INB_AT=Date.now();let r;try{r=await sbRpc("get_msg_inbox",{p_pin:pin})}catch(_){return}if(r&&r.ok){ITEMS=r.items||[];INB_OK=true;archReconcile(ITEMS);await archFetch(pin);await actionLabelsFetch(pin);paint();if(OPEN){const ae=document.activeElement;if(!CF&&!(ae&&ae.matches&&ae.matches("[data-cm-txt]")))render()}}}
     const ids=Object.keys(MINE).filter(i=>MINE[i].s==="pending");if(ids.length){try{const r=await sbRpc("msg_action_status",{p_ids:ids});for(const x of (r&&r.items)||[]){if(MINE[x.id])MINE[x.id].s=x.status}}catch(_){}if(OPEN&&!CF)render()}}
-  LIVE.on("msg",load);
+  LIVE.on("msg",()=>{INB_AT=0;return load()}); // t337b: realtime event bypasses the 45-second cache
   setTimeout(load,1200);setInterval(()=>{if(!OPEN&&!document.hidden)load()},60e3); // t294u: keep the ✉ colour current
   // t233u: while a custom message is being polished on the box, look for the result every 20 s
   setInterval(()=>{if(OPEN&&Object.keys(POL).length)load()},20e3);window.MSG_RERENDER=()=>{if(OPEN&&!CF)render()};
