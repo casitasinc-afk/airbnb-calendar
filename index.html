@@ -692,13 +692,14 @@ body.swapped #uk-handle>svg,body.swapped #uk-handle .sheet-grab{display:none}
 #tech-panel .tp-hwx .t{font-weight:800;font-size:14px}
 #tech-panel .tp-hwx .n{flex-basis:100%;font-size:11px;font-weight:700;color:#047857}
 #tech-panel .tp-hwx.freeze .n{color:#B91C1C}
-#tech-panel .tp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px 0 4px}
-#tech-panel .tp-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:92px;padding:14px 8px 10px;border:1px solid #E5E7EB;border-radius:14px;background:#fff;cursor:pointer;font:inherit;color:#111827;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* t360u: compact 3-column Technika tiles (not 4) */
+#tech-panel .tp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:6px 0 2px}
+#tech-panel .tp-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:8px 4px 6px;border:1px solid #E5E7EB;border-radius:10px;background:#fff;cursor:pointer;font:inherit;color:#111827;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #tech-panel .tp-tile:hover,#tech-panel .tp-tile:focus-visible{background:#F8FAFC;border-color:#C7D2FE;outline:none}
-#tech-panel .tp-tile .ic{font-size:28px;line-height:1}
-#tech-panel .tp-tile .lb{font-size:12.5px;font-weight:800;line-height:1.25}
-#tech-panel .tp-tile .sub{font-size:10.5px;font-weight:600;color:#6B7280;line-height:1.2}
-#tech-panel .tp-tile .pc{position:absolute;top:6px;right:6px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#F59E0B;color:#1C1400;font:800 10px/18px system-ui,sans-serif;text-align:center}
+#tech-panel .tp-tile .ic{font-size:18px;line-height:1}
+#tech-panel .tp-tile .lb{font-size:10px;font-weight:800;line-height:1.2}
+#tech-panel .tp-tile .sub{font-size:8.5px;font-weight:600;color:#6B7280;line-height:1.15}
+#tech-panel .tp-tile .pc{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:#F59E0B;color:#1C1400;font:800 9px/16px system-ui,sans-serif;text-align:center}
 #tech-panel .tp-tile .pc.red{background:#DC2626;color:#fff}
 #tech-panel .tp-tile .pc.red.flash{animation:techPulse 1s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){#tech-panel .tp-tile .pc.red.flash{animation:none}}
