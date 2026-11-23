@@ -1,0 +1,110 @@
+{
+  "listings": [
+    {"name": "Anahita", "kind": "houseboat"},
+    {"name": "Anna", "kind": "houseboat"},
+    {"name": "Audrey", "kind": "houseboat"},
+    {"name": "Cassiopeia", "kind": "houseboat"},
+    {"name": "Daniela", "kind": "houseboat"},
+    {"name": "Elizabeth", "kind": "houseboat"},
+    {"name": "Ginger", "kind": "houseboat"},
+    {"name": "Jane", "kind": "houseboat"},
+    {"name": "Josefina", "kind": "houseboat"},
+    {"name": "Juana", "kind": "houseboat"},
+    {"name": "Juliet", "kind": "houseboat"},
+    {"name": "Klara", "kind": "houseboat"},
+    {"name": "Laura", "kind": "houseboat"},
+    {"name": "Lulu", "kind": "houseboat"},
+    {"name": "Luna", "kind": "houseboat"},
+    {"name": "Magdalena", "kind": "houseboat"},
+    {"name": "Margarita", "kind": "houseboat"},
+    {"name": "Marilyn", "kind": "houseboat"},
+    {"name": "Newman", "kind": "houseboat"},
+    {"name": "Patricia", "kind": "houseboat"},
+    {"name": "Romeo", "kind": "houseboat"},
+    {"name": "Sara", "kind": "houseboat"},
+    {"name": "Traviata", "kind": "houseboat"},
+    {"name": "Dafni", "kind": "house"},
+    {"name": "Podkozi", "kind": "house"},
+    {"name": "Vavrinec", "kind": "house"}
+  ],
+  "entries": [
+    {
+      "listing": "",
+      "topic": "place",
+      "sort": 10,
+      "body": "These are the host's houseboats and houses in Prague, Smíchov. Houseboats are at the marina. The houses are Dafni, Podkozi, and Vavrinec: they are houses, not houseboats, and they are not in the marina parking lot. The exact street address and walking directions are not in these notes. If a guest asks for the street address, a map pin, or how to arrive from public transport, say you do not have it and the host team will reply."
+    },
+    {
+      "listing": "",
+      "topic": "checkin",
+      "sort": 20,
+      "body": "Check-in is at 15:00 (3:00 p.m.), Europe/Prague time, for every houseboat and every house. The property is ready from 15:00."
+    },
+    {
+      "listing": "",
+      "topic": "checkout",
+      "sort": 30,
+      "body": "Check-out is at 10:00 (10:00 a.m.), Europe/Prague time, for every houseboat and every house."
+    },
+    {
+      "listing": "",
+      "topic": "early",
+      "sort": 40,
+      "body": "Early check-in before 15:00 is not automatic, and Housebot cannot approve it. If the host agrees, the fee is 5 EUR for each hour before 15:00, paid in the Airbnb app (a payment request arrives there). Explain this rule. The host team confirms whether this stay may arrive early."
+    },
+    {
+      "listing": "",
+      "topic": "late",
+      "sort": 50,
+      "body": "Late check-out after 10:00 is not automatic, and Housebot cannot approve it. The host team has to confirm."
+    },
+    {
+      "listing": "",
+      "topic": "parking",
+      "sort": 60,
+      "body": "Marina parking for the houseboats: park behind the white line, only in an approved parking spot, take only one spot, and do not park in a spot marked with a company logo. The houses (Dafni, Podkozi, Vavrinec) are not in the marina parking lot. Where a house has a marked spot, the same manners apply: behind the white line, one approved spot, not a company-logo spot. Which exact spot is free, and house-specific parking directions, are not in these notes; the host team will reply."
+    },
+    {
+      "listing": "",
+      "topic": "toilet",
+      "sort": 70,
+      "body": "Toilet rule for every property: on arrival, check that the toilet flushes. A blockage found later is at the guest's cost. Toilet paper only — no wet wipes, tissues, food, sanitary pads, or anything else."
+    },
+    {
+      "listing": "",
+      "topic": "broken",
+      "sort": 80,
+      "body": "Please report anything broken or damaged as soon as you arrive, in this chat or on Airbnb."
+    },
+    {
+      "listing": "",
+      "topic": "rules",
+      "sort": 90,
+      "body": "Rules about pets, smoking, parties, quiet hours, and extra guests are the ones agreed on the Airbnb listing and on the house website. The full text of those rules is not in these notes. If a guest asks whether pets, smoking, parties, or extra people are allowed, do not guess; the host team will confirm."
+    },
+    {
+      "listing": "",
+      "topic": "wifi",
+      "sort": 100,
+      "body": "Wi-Fi network name and password: NOT SET. Do not invent a network name or a password. If a guest asks for Wi-Fi, say it is not in your notes and the host team will reply with it. Replace this sentence with the real network name and password guests are allowed to see. A row with the same topic and a listing name overrides this for that property only."
+    },
+    {
+      "listing": "",
+      "topic": "access",
+      "sort": 110,
+      "body": "Getting in: Housebot never gives entry codes, and none are stored in these notes. If a guest cannot get in or asks how the door opens, the host team will reply. Do not describe a keypad, a code, or a hidden key."
+    },
+    {
+      "listing": "",
+      "topic": "contact",
+      "sort": 120,
+      "body": "The host team answers in this Housebot chat and on Airbnb. Housebot cannot phone the guest, take payment, or change a reservation. Guest messages from the host team are signed by Gabriela and the houseboat team; for the houses, Gabriela and the team."
+    },
+    {
+      "listing": "",
+      "topic": "problems",
+      "sort": 130,
+      "body": "If heating, hot water, electricity, or water is not working, Housebot has no repair steps. Apologise briefly and say the host team will reply soon. Do not invent fuse boxes, breaker panels, or reset steps."
+    }
+  ]
+}
