@@ -17,18 +17,24 @@ self.addEventListener("activate", (e) => {
 
 // Network-first, bypassing the HTTP cache (t183u: everyone gets the latest published data), fall back to cache when offline.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET" || new URL(e.request.url).origin !== self.location.origin) return;
+  const url = new URL(e.request.url);
+  if (e.request.method !== "GET" || url.origin !== self.location.origin) return;
+  // Housebot is a separate guest page. Do not cache it with the calendar, and do not
+  // fall back to the calendar if the guest is offline.
+  const housebot = /\/housebot(?:\/|$)/.test(url.pathname);
   e.respondWith(
     fetch(new Request(e.request.url, { cache: "no-store", credentials: "same-origin" }))
       .then((res) => {
-        if (res && res.ok) {
+        if (res && res.ok && !housebot) {
           const copy = res.clone();
           const key = e.request.url.split("?")[0]; // t183u: one entry per file (the 90 s re-check adds ?ts=…)
           caches.open(CACHE).then((c) => c.put(key, copy));
         }
         return res;
       })
-      .catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match("index.html")))
+      .catch(() => housebot
+        ? new Response("Housebot is offline. Reopen this page when you have a connection.", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } })
+        : caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match("index.html")))
   );
 });
 

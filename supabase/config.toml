@@ -1,0 +1,7 @@
+# Used by `supabase functions deploy housebot`. Does not start a local stack.
+project_id = "pamzwqmjeizcieciaijf"
+
+# Browser preflight does not send a JWT, so the gateway check stays off.
+# index.ts rejects any POST that does not present this project's anon key.
+[functions.housebot]
+verify_jwt = false

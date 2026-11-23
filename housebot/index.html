@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e6e96">
+<title>Housebot</title>
+<style>
+  :root { color-scheme: light; --ink:#12313c; --muted:#4d6872; --sea:#0e6e96; --foam:#e7f5fb; --line:#d3e4ee; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #d5eaf4; color: var(--ink); font: 16px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; }
+  .shell { max-width: 440px; min-height: 100dvh; margin: 0 auto; background: #f6fbfd; display: flex; flex-direction: column; }
+  header { display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: var(--sea); color: #fff; }
+  header svg { flex: 0 0 auto; display: block; }
+  header strong { display: block; font-size: 18px; letter-spacing: .01em; }
+  header p { margin: 1px 0 0; font-size: 13px; color: #d7eef8; }
+  header button.link { margin-left: auto; border: 0; background: transparent; color: #fff; font: 700 13px system-ui; text-decoration: underline; cursor: pointer; padding: 6px; }
+  #log { flex: 1; overflow: auto; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 10px; }
+  .bubble { max-width: 86%; padding: 9px 12px; border-radius: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .bubble small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .02em; margin-bottom: 2px; opacity: .75; }
+  .bubble.bot { align-self: flex-start; background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+  .bubble.guest { align-self: flex-end; background: var(--sea); color: #fff; border-bottom-right-radius: 5px; }
+  .bubble.host { align-self: flex-start; background: #ecfdf5; border: 1px solid #a7f3d0; border-bottom-left-radius: 5px; }
+  .card { margin: 8px 14px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .card h1 { margin: 0 0 6px; font-size: 20px; }
+  .card p { margin: 0 0 12px; color: var(--muted); }
+  label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  input[type="text"], input[type="search"], textarea { width: 100%; border: 1px solid #b7cdd8; border-radius: 12px; padding: 12px; font: 16px/1.35 system-ui; color: var(--ink); background: #fff; }
+  textarea { resize: none; min-height: 46px; max-height: 120px; }
+  button.go, button.pick { font: 700 16px/1 system-ui; cursor: pointer; }
+  button.go { margin-top: 10px; width: 100%; border: 0; border-radius: 12px; background: var(--sea); color: #fff; padding: 13px; }
+  button.go:disabled, button.send:disabled { opacity: .45; cursor: default; }
+  .group { margin: 12px 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  button.pick { display: block; width: 100%; text-align: left; margin: 0 0 6px; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--foam); color: var(--ink); }
+  button.pick span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+  form.bar { display: flex; gap: 8px; align-items: flex-end; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff; }
+  button.send { flex: 0 0 auto; border: 0; border-radius: 12px; background: var(--sea); color: #fff; font: 700 15px system-ui; padding: 12px 14px; cursor: pointer; }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <svg viewBox="0 0 64 64" width="42" height="42" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="#0a5c7d"/>
+      <path d="M8 42h48l-7 9H15z" fill="#f4d35e"/>
+      <path d="M12 42c5-10 12-15 20-15s15 5 20 15" fill="#49a3c9"/>
+      <rect x="24" y="22" width="16" height="13" rx="2" fill="#f7fbfe"/>
+      <circle cx="29" cy="28.5" r="2.1" fill="#0e6e96"/>
+      <circle cx="35" cy="28.5" r="2.1" fill="#0e6e96"/>
+      <path d="M6 56c7 2.5 11-2.5 18 0s11 2.5 18 0 11-2.5 16 0" fill="none" stroke="#b7e2f2" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <strong>Housebot</strong>
+      <p id="sub"></p>
+    </div>
+    <button type="button" class="link hide" id="switch"></button>
+  </header>
+  <div id="stage"></div>
+  <div id="log" class="hide" role="log" aria-live="polite"></div>
+  <form id="bar" class="bar hide">
+    <label class="hide" for="msg" id="msg-label"></label>
+    <textarea id="msg" rows="1" maxlength="800"></textarea>
+    <button type="submit" class="send" id="send"></button>
+  </form>
+</div>
+<script type="application/json" id="hb-listings">[{"name": "Anahita", "kind": "houseboat"}, {"name": "Anna", "kind": "houseboat"}, {"name": "Audrey", "kind": "houseboat"}, {"name": "Cassiopeia", "kind": "houseboat"}, {"name": "Daniela", "kind": "houseboat"}, {"name": "Elizabeth", "kind": "houseboat"}, {"name": "Ginger", "kind": "houseboat"}, {"name": "Jane", "kind": "houseboat"}, {"name": "Josefina", "kind": "houseboat"}, {"name": "Juana", "kind": "houseboat"}, {"name": "Juliet", "kind": "houseboat"}, {"name": "Klara", "kind": "houseboat"}, {"name": "Laura", "kind": "houseboat"}, {"name": "Lulu", "kind": "houseboat"}, {"name": "Luna", "kind": "houseboat"}, {"name": "Magdalena", "kind": "houseboat"}, {"name": "Margarita", "kind": "houseboat"}, {"name": "Marilyn", "kind": "houseboat"}, {"name": "Newman", "kind": "houseboat"}, {"name": "Patricia", "kind": "houseboat"}, {"name": "Romeo", "kind": "houseboat"}, {"name": "Sara", "kind": "houseboat"}, {"name": "Traviata", "kind": "houseboat"}, {"name": "Dafni", "kind": "house"}, {"name": "Podkozi", "kind": "house"}, {"name": "Vavrinec", "kind": "house"}]</script>
+<script>
+(function () {
+  const FN = "https://pamzwqmjeizcieciaijf.supabase.co/functions/v1/housebot";
+  const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhbXp3cW1qZWl6Y2llY2lhaWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1NjI3NzgsImV4cCI6MjExMDEzODc3OH0.o2Udkw1MaoC_3OXHEdVw9IvGlSK1URS-ILV_tPbzvkM";
+  const UI = {
+    en: { pick: "Which place are you staying in?", pickSub: "Choose the name on your door.", boats: "Houseboats", houses: "Houses", search: "Search by name", nameTitle: "What should we call you?", nameSub: "So the host knows who is asking.", name: "Your name", continue: "Continue", hi: "Hello {name}, I am Housebot. I can help with check-in (15:00), check-out (10:00), parking, and the house rules for {place}. What do you need?", ph: "Write a message", send: "Send", change: "Change", you: "You", host: "Host", bot: "Housebot", offline: "Housebot can't reach the host just now. Please message the host on Airbnb.", house: "House", boat: "Houseboat" },
+    cs: { pick: "Kde bydlíte?", pickSub: "Vyberte jméno na dveřích.", boats: "Hausbóty", houses: "Domy", search: "Hledat podle jména", nameTitle: "Jak vám máme říkat?", nameSub: "Ať hostitel ví, kdo se ptá.", name: "Vaše jméno", continue: "Pokračovat", hi: "Dobrý den {name}, jsem Housebot. Pomůžu s příjezdem (15:00), odjezdem (10:00), parkováním a pravidly pro {place}. Co potřebujete?", ph: "Napište zprávu", send: "Odeslat", change: "Změnit", you: "Vy", host: "Hostitel", bot: "Housebot", offline: "Housebot se teď k hostiteli nedostane. Napište prosím hostiteli na Airbnb.", house: "Dům", boat: "Hausbót" },
+    de: { pick: "Wo wohnen Sie?", pickSub: "Wählen Sie den Namen an der Tür.", boats: "Hausboote", houses: "Häuser", search: "Nach Namen suchen", nameTitle: "Wie dürfen wir Sie nennen?", nameSub: "Damit die Gastgeber wissen, wer fragt.", name: "Ihr Name", continue: "Weiter", hi: "Hallo {name}, ich bin Housebot. Ich helfe beim Check-in (15:00), Check-out (10:00), Parken und den Hausregeln für {place}. Wobei darf ich helfen?", ph: "Nachricht schreiben", send: "Senden", change: "Wechseln", you: "Sie", host: "Gastgeber", bot: "Housebot", offline: "Housebot erreicht die Gastgeber gerade nicht. Bitte schreiben Sie ihnen über Airbnb.", house: "Haus", boat: "Hausboot" },
+    uk: { pick: "Де ви живете?", pickSub: "Оберіть ім’я на дверях.", boats: "Хаусботи", houses: "Будинки", search: "Пошук за назвою", nameTitle: "Як до вас звертатися?", nameSub: "Щоб господарі знали, хто питає.", name: "Ваше ім’я", continue: "Далі", hi: "Вітаємо, {name}! Я Housebot. Допоможу з заїздом (15:00), виїздом (10:00), паркуванням і правилами для {place}. Чим допомогти?", ph: "Напишіть повідомлення", send: "Надіслати", change: "Змінити", you: "Ви", host: "Господар", bot: "Housebot", offline: "Housebot зараз не може зв’язатися з господарями. Напишіть їм в Airbnb.", house: "Будинок", boat: "Хаусбот" },
+    sk: { pick: "Kde bývate?", pickSub: "Vyberte meno na dverách.", boats: "Hausbóty", houses: "Domy", search: "Hľadať podľa mena", nameTitle: "Ako vám máme hovoriť?", nameSub: "Aby hostiteľ vedel, kto sa pýta.", name: "Vaše meno", continue: "Pokračovať", hi: "Dobrý deň {name}, som Housebot. Pomôžem s príchodom (15:00), odchodom (10:00), parkovaním a pravidlami pre {place}. Čo potrebujete?", ph: "Napíšte správu", send: "Odoslať", change: "Zmeniť", you: "Vy", host: "Hostiteľ", bot: "Housebot", offline: "Housebot sa teraz k hostiteľovi nedostane. Napíšte prosím hostiteľovi na Airbnb.", house: "Dom", boat: "Hausbót" },
+    pl: { pick: "Gdzie Państwo mieszkają?", pickSub: "Wybierzcie nazwę na drzwiach.", boats: "Houseboaty", houses: "Domy", search: "Szukaj po nazwie", nameTitle: "Jak mamy się do Państwa zwracać?", nameSub: "Żeby gospodarz wiedział, kto pyta.", name: "Imię", continue: "Dalej", hi: "Dzień dobry {name}, jestem Housebot. Pomogę z zameldowaniem (15:00), wymeldowaniem (10:00), parkowaniem i zasadami dla {place}. W czym pomóc?", ph: "Napisz wiadomość", send: "Wyślij", change: "Zmień", you: "Ty", host: "Gospodarz", bot: "Housebot", offline: "Housebot nie może teraz skontaktować się z gospodarzem. Napisz do gospodarza na Airbnb.", house: "Dom", boat: "Houseboat" },
+    fr: { pick: "Où logez-vous ?", pickSub: "Choisissez le nom sur la porte.", boats: "Houseboats", houses: "Maisons", search: "Chercher par nom", nameTitle: "Comment devons-nous vous appeler ?", nameSub: "Pour que l'hôte sache qui pose la question.", name: "Votre nom", continue: "Continuer", hi: "Bonjour {name}, je suis Housebot. Je peux aider pour l'arrivée (15:00), le départ (10:00), le stationnement et les règles de {place}. De quoi avez-vous besoin ?", ph: "Écrire un message", send: "Envoyer", change: "Changer", you: "Vous", host: "Hôte", bot: "Housebot", offline: "Housebot ne joint pas l'hôte pour le moment. Écrivez à l'hôte sur Airbnb.", house: "Maison", boat: "Houseboat" },
+    es: { pick: "¿Dónde se alojan?", pickSub: "Elijan el nombre de la puerta.", boats: "Houseboats", houses: "Casas", search: "Buscar por nombre", nameTitle: "¿Cómo les llamamos?", nameSub: "Para que el anfitrión sepa quién pregunta.", name: "Su nombre", continue: "Continuar", hi: "Hola {name}, soy Housebot. Puedo ayudar con la entrada (15:00), la salida (10:00), el aparcamiento y las normas de {place}. ¿Qué necesitan?", ph: "Escribir un mensaje", send: "Enviar", change: "Cambiar", you: "Tú", host: "Anfitrión", bot: "Housebot", offline: "Housebot no puede contactar al anfitrión ahora. Escriba al anfitrión en Airbnb.", house: "Casa", boat: "Houseboat" },
+    it: { pick: "Dove alloggiate?", pickSub: "Scegliete il nome sulla porta.", boats: "Houseboat", houses: "Case", search: "Cerca per nome", nameTitle: "Come vi chiamiamo?", nameSub: "Così l'host sa chi sta chiedendo.", name: "Il vostro nome", continue: "Continua", hi: "Ciao {name}, sono Housebot. Posso aiutare con il check-in (15:00), il check-out (10:00), il parcheggio e le regole di {place}. Di cosa avete bisogno?", ph: "Scrivi un messaggio", send: "Invia", change: "Cambia", you: "Voi", host: "Host", bot: "Housebot", offline: "Housebot non riesce a contattare l'host in questo momento. Scrivete all'host su Airbnb.", house: "Casa", boat: "Houseboat" },
+    nl: { pick: "Waar verblijft u?", pickSub: "Kies de naam op de deur.", boats: "Woonboten", houses: "Huizen", search: "Zoek op naam", nameTitle: "Hoe mogen we u noemen?", nameSub: "Zodat de host weet wie er vraagt.", name: "Uw naam", continue: "Verder", hi: "Hallo {name}, ik ben Housebot. Ik help met inchecken (15:00), uitchecken (10:00), parkeren en de huisregels van {place}. Waarmee kan ik helpen?", ph: "Schrijf een bericht", send: "Verstuur", change: "Wijzig", you: "U", host: "Host", bot: "Housebot", offline: "Housebot kan de host nu niet bereiken. Stuur de host een bericht via Airbnb.", house: "Huis", boat: "Woonboot" },
+    ru: { pick: "Где вы живёте?", pickSub: "Выберите имя на двери.", boats: "Хаусботы", houses: "Дома", search: "Поиск по имени", nameTitle: "Как к вам обращаться?", nameSub: "Чтобы хозяева знали, кто спрашивает.", name: "Ваше имя", continue: "Дальше", hi: "Здравствуйте, {name}! Я Housebot. Помогу с заездом (15:00), выездом (10:00), парковкой и правилами для {place}. Чем помочь?", ph: "Напишите сообщение", send: "Отправить", change: "Сменить", you: "Вы", host: "Хозяин", bot: "Housebot", offline: "Housebot сейчас не может связаться с хозяевами. Напишите им в Airbnb.", house: "Дом", boat: "Хаусбот" }
+  };
+  const stage = document.getElementById("stage");
+  const log = document.getElementById("log");
+  const bar = document.getElementById("bar");
+  const sub = document.getElementById("sub");
+  const sw = document.getElementById("switch");
+  const msg = document.getElementById("msg");
+  const send = document.getElementById("send");
+  let listings = [];
+  let listing = null;
+  let guest = "";
+  let sid = "";
+  let busy = false;
+
+  function langKey() {
+    const l = (navigator.language || "en").toLowerCase();
+    if (l.startsWith("cs") || l === "cz") return "cs";
+    if (l.startsWith("de")) return "de";
+    if (l.startsWith("uk") || l.startsWith("ua")) return "uk";
+    if (l.startsWith("sk")) return "sk";
+    if (l.startsWith("pl")) return "pl";
+    if (l.startsWith("fr")) return "fr";
+    if (l.startsWith("es")) return "es";
+    if (l.startsWith("it")) return "it";
+    if (l.startsWith("nl")) return "nl";
+    if (l.startsWith("ru")) return "ru";
+    return "en";
+  }
+  const t = (k) => (UI[langKey()] || UI.en)[k] || UI.en[k] || k;
+  function store() { try { return JSON.parse(localStorage.getItem("housebot.v1") || "{}") || {}; } catch (e) { return {}; } }
+  function save(p) { const s = store(); localStorage.setItem("housebot.v1", JSON.stringify(Object.assign(s, p))); }
+  function uuid() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+  function sessionFor(name) {
+    const s = store();
+    const map = s.sessions || {};
+    if (!map[name]) { map[name] = uuid(); save({ sessions: map }); }
+    return map[name];
+  }
+  function paramListing() {
+    const q = new URLSearchParams(location.search);
+    const raw = (q.get("boat") || q.get("listing") || "").trim().toLowerCase();
+    if (!raw) return null;
+    return listings.find((l) => l.name.toLowerCase() === raw) || null;
+  }
+  async function call(action, extra) {
+    try {
+      const res = await fetch(FN, {
+        method: "POST",
+        headers: { apikey: ANON, authorization: "Bearer " + ANON, "content-type": "application/json" },
+        body: JSON.stringify(Object.assign({ action: action }, extra || {}))
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok && j.ok !== true) return Object.assign({ ok: false, error: j.error || "unavailable" }, j);
+      return j;
+    } catch (e) {
+      return { ok: false, error: "unavailable" };
+    }
+  }
+  function bubble(role, text, at) {
+    const el = document.createElement("div");
+    el.className = "bubble " + (role === "guest" ? "guest" : role === "host" ? "host" : "bot");
+    const lab = document.createElement("small");
+    lab.textContent = role === "guest" ? t("you") : role === "host" ? t("host") : t("bot");
+    el.appendChild(lab);
+    el.appendChild(document.createTextNode(text));
+    if (at) {
+      const when = document.createElement("small");
+      const d = new Date(at);
+      if (!isNaN(d.getTime())) when.textContent = new Intl.DateTimeFormat(navigator.language || "en", { hour: "2-digit", minute: "2-digit" }).format(d);
+      el.appendChild(when);
+    }
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+    return el;
+  }
+  function showChat() {
+    stage.innerHTML = "";
+    stage.classList.add("hide");
+    log.classList.remove("hide");
+    bar.classList.remove("hide");
+    sw.classList.remove("hide");
+    sw.textContent = t("change");
+    sub.textContent = listing.name + " · " + (listing.kind === "house" ? t("house") : t("boat"));
+    document.title = "Housebot · " + listing.name;
+    send.textContent = t("send");
+    msg.placeholder = t("ph");
+    document.getElementById("msg-label").textContent = t("ph");
+    loadHistory();
+  }
+  function showName() {
+    log.classList.add("hide");
+    bar.classList.add("hide");
+    sw.classList.remove("hide");
+    sw.textContent = t("change");
+    stage.classList.remove("hide");
+    sub.textContent = listing.name;
+    const card = document.createElement("form");
+    card.className = "card";
+    const h = document.createElement("h1");
+    h.textContent = t("nameTitle");
+    const p = document.createElement("p");
+    p.textContent = t("nameSub");
+    const lab = document.createElement("label");
+    lab.textContent = t("name");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 60;
+    input.required = true;
+    input.autocomplete = "name";
+    input.value = guest || "";
+    lab.appendChild(input);
+    const btn = document.createElement("button");
+    btn.className = "go";
+    btn.type = "submit";
+    btn.textContent = t("continue");
+    card.append(h, p, lab, btn);
+    card.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const n = input.value.replace(/\s+/g, " ").trim();
+      if (!n) return;
+      guest = n.slice(0, 60);
+      save({ name: guest });
+      showChat();
+    });
+    stage.innerHTML = "";
+    stage.appendChild(card);
+    input.focus();
+  }
+  function showPicker() {
+    listing = null;
+    log.classList.add("hide");
+    bar.classList.add("hide");
+    sw.classList.add("hide");
+    stage.classList.remove("hide");
+    sub.textContent = "Prague · Smíchov";
+    document.title = "Housebot";
+    const card = document.createElement("div");
+    card.className = "card";
+    const h = document.createElement("h1");
+    h.textContent = t("pick");
+    const p = document.createElement("p");
+    p.textContent = t("pickSub");
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = t("search");
+    search.setAttribute("aria-label", t("search"));
+    const box = document.createElement("div");
+    function paint(q) {
+      box.innerHTML = "";
+      const query = (q || "").trim().toLowerCase();
+      [["boat", t("boats")], ["house", t("houses")]].forEach(([kind, label]) => {
+        const rows = listings.filter((l) => (l.kind === "house" ? "house" : "boat") === kind && l.name.toLowerCase().includes(query));
+        if (!rows.length) return;
+        const g = document.createElement("div");
+        g.className = "group";
+        g.textContent = label;
+        box.appendChild(g);
+        rows.forEach((l) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "pick";
+          b.appendChild(document.createTextNode(l.name));
+          const s = document.createElement("span");
+          s.textContent = l.kind === "house" ? t("house") : t("boat");
+          b.appendChild(s);
+          b.addEventListener("click", () => choose(l));
+          box.appendChild(b);
+        });
+      });
+    }
+    search.addEventListener("input", () => paint(search.value));
+    card.append(h, p, search, box);
+    stage.innerHTML = "";
+    stage.appendChild(card);
+    paint("");
+  }
+  function choose(l) {
+    listing = l;
+    sid = sessionFor(l.name);
+    guest = (store().name || "").trim();
+    if (!guest) showName();
+    else showChat();
+  }
+  async function loadHistory() {
+    if (busy || !sid) return;
+    const res = await call("history", { session_id: sid });
+    if (busy) return;
+    log.innerHTML = "";
+    const rows = res && res.ok && Array.isArray(res.messages) ? res.messages : [];
+    if (!rows.length) {
+      bubble("assistant", t("hi").replace("{name}", guest).replace("{place}", listing.name));
+      return;
+    }
+    rows.forEach((m) => bubble(m.role === "guest" ? "guest" : m.role === "host" ? "host" : "assistant", m.body || "", m.created_at));
+  }
+  async function onSend(e) {
+    e.preventDefault();
+    const text = msg.value.trim();
+    if (!text || busy || !listing) return;
+    busy = true;
+    send.disabled = true;
+    const mine = bubble("guest", text);
+    msg.value = "";
+    const res = await call("chat", { session_id: sid, listing: listing.name, guest_name: guest, message: text, lang: navigator.language || "en" });
+    if (res && res.ok && res.reply) bubble("assistant", res.reply);
+    else {
+      mine.remove();
+      msg.value = text;
+      bubble("assistant", (res && res.reply) || t("offline"));
+    }
+    busy = false;
+    send.disabled = false;
+    msg.focus();
+  }
+  sw.addEventListener("click", () => { history.replaceState(null, "", location.pathname); showPicker(); });
+  bar.addEventListener("submit", onSend);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadHistory(); });
+  window.addEventListener("pageshow", () => loadHistory());
+  listings = JSON.parse(document.getElementById("hb-listings").textContent);
+  call("listings").then((res) => {
+    if (res && res.ok && Array.isArray(res.listings) && res.listings.length) {
+      listings = res.listings;
+      if (!listing) showPicker();
+    }
+  });
+  const remembered = store();
+  guest = (remembered.name || "").trim();
+  const fromUrl = paramListing();
+  if (fromUrl) choose(fromUrl);
+  else showPicker();
+})();
+</script>
+</body>
+</html>
