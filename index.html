@@ -568,6 +568,12 @@ body.swapped #uk-handle>svg,body.swapped #uk-handle .sheet-grab{display:none}
 #tech-panel [data-alert-key].notify{box-shadow:inset 3px 0 0 #DC2626}
 #tech-panel{position:fixed;right:6px;bottom:46px;width:min(370px,calc(100vw - 12px));max-height:min(74dvh,600px);display:none;flex-direction:column;box-sizing:border-box;background:#fff;color:#111827;border:1px solid #D1D5DB;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:9500;overflow:hidden;font:13px/1.3 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;transform-origin:100% 100%}
 #tech-panel.open{display:flex;animation:techIn .18s ease-out}
+/* t365u: every Technika sub-screen (not the tile grid) is full screen */
+#tech-panel.tp-full{top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;max-height:none!important;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none;transform-origin:50% 50%;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#tech-panel.tp-full .tp-b{flex:1 1 auto;min-height:0;padding:6px max(12px,calc((100vw - 920px)/2)) 18px}
+#tech-panel.tp-full .tp-b .tp-back{display:none}
+#tech-panel .tp-hback{display:inline-flex;align-items:center;gap:2px;border:1px solid #BFDBFE;background:#EFF6FF;color:#1D4ED8;border-radius:999px;height:30px;padding:0 12px 0 9px;font:800 13px system-ui,sans-serif;cursor:pointer;flex-shrink:0;touch-action:manipulation}
+#tech-panel.tp-full .tp-x{width:32px;height:32px;line-height:32px;font-size:17px}
 @keyframes techIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
 #tech-panel .tp-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 10px 8px 12px;border-bottom:1px solid #F1F2F4;flex-shrink:0}
 #tech-panel .tp-h b{font-size:15px}
@@ -3245,10 +3251,15 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
       else if(p.t==="l")s+=`<polyline points="${p.pts}" fill="none" stroke="${p.k}" stroke-width="${p.sw||1}" stroke-linecap="round"/>`;
       else if(p.t==="x")s+=`<text x="${p.x}" y="${p.y}" font-size="${(+p.s).toFixed(2)}"${p.b?` font-weight="${p.b}"`:""} fill="${p.f||"#111827"}"${p.a?` text-anchor="${p.a}"`:""}${A(p)}>${esc(p.tx)}</text>`}
     return s}
+  // t365u: fit the scheme to the full-screen panel (width ≤ container, height ≤ rest of the screen)
+  function elFit(){const vp=document.querySelector("#tech-panel [data-el-vp]"),tb=document.querySelector("#tech-panel .tp-b");if(!vp||!tb)return;const sv=vp.querySelector("svg");if(!sv)return;
+    const [W,H]=EL_WH,vr=vp.getBoundingClientRect(),z=(vr.width/(vp.offsetWidth||1))||1,top=tb.getBoundingClientRect().top+(vr.top-tb.getBoundingClientRect().top)+tb.scrollTop*z;
+    const avail=Math.max(260,innerHeight-top-12)/z,w=Math.min(vp.clientWidth,avail*W/H);sv.style.width=Math.floor(w)+"px";sv.style.margin="0 auto"}
+  window.addEventListener("resize",()=>{if(document.querySelector("#tech-panel.tp-full [data-el-vp]"))elFit()});
   function elScheme(){const f1=x=>{const v=(+x).toFixed(1);return LANG==="gb"?v:v.replace(".",",")};
     const sc=elScene(EL_OFF,EL_SIM,EL_SEL,f1);EL_WH=[sc.W,sc.H];elClampV();
     const zb=(z,ic,k)=>`<button type="button" data-el-z="${z}" aria-label="${esc(T(k))}" title="${esc(T(k))}" style="width:34px;height:34px;border:1px solid #D1D5DB;border-radius:8px;background:#fff;font:700 18px system-ui;color:#111827;cursor:pointer;touch-action:manipulation">${ic}</button>`;
-    let h=`<div data-el-scheme style="margin:6px 0 4px"><div style="font-weight:800;font-size:13px;margin:2px 2px 2px">${esc(T("elx_title"))}</div><div data-elx-help style="font-size:10.5px;color:#6B7280;line-height:1.35;margin:0 2px 4px">${esc(T("elx_help"))}</div><div data-elx-formula style="font-size:10.5px;color:#374151;line-height:1.35;margin:0 2px 4px">${esc(T("elx_formula"))}</div>`;
+    let h=`<div data-el-scheme style="margin:6px 0 4px"><div style="font-weight:800;font-size:13px;margin:2px 2px 2px">${esc(T("elx_title"))}</div>`;
     h+=`<div data-el-vp style="position:relative;border:1px solid #E5E7EB;border-radius:10px;background:#F8FAFC;overflow:hidden;touch-action:none;overscroll-behavior:contain"><svg viewBox="0 0 ${sc.W} ${sc.H}" width="100%" style="display:block;user-select:none;-webkit-user-select:none" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" role="img" aria-label="${esc(T("elx_title"))}"><g data-el-g transform="translate(${EL_V.x.toFixed(1)} ${EL_V.y.toFixed(1)}) scale(${EL_V.s.toFixed(3)})">${elSvg(sc)}</g></svg><div style="position:absolute;right:6px;bottom:6px;display:flex;gap:4px">${zb("in","+","elx_zin")}${zb("out","−","elx_zout")}${zb("fit","⤢","elx_zfit")}</div></div>`;
     const btn=(act,lb,on,dis)=>`<button type="button" data-el-act="${esc(act)}"${dis?" disabled":""} style="border:1px solid ${on?"#1D4ED8":"#D1D5DB"};background:${on?"#DBEAFE":"#fff"};color:#111827;border-radius:999px;padding:4px 10px;font:600 12px system-ui;cursor:pointer;touch-action:manipulation;margin:2px">${esc(lb)}</button>`;
     const fb=EL_SEL&&elFindBoat(EL_SEL);
@@ -3259,6 +3270,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
       h+=`<div style="margin-top:2px">${btn(`dx|${EL_SEL}`,T(s.x?"elx_conn":"elx_disc"),false)}${btn("sel|","✕ "+T("elx_close"),false)}</div></div>`}
     const nS=elSimCount(EL_SIM)+Object.keys(EL_OFF).length;
     h+=`<div data-el-sim style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:${nS?"#6D28D9":"#6B7280"};margin-top:6px"><span>${esc(nS?T("elx_simn",nS):T("elx_nosim")+" "+T("elx_tap"))}</span>${btn("reset","↺ "+T("elx_reset"),false,!nS)}</div>`;
+    h+=`<div data-elx-help style="font-size:10.5px;color:#6B7280;line-height:1.35;margin:8px 2px 4px">${esc(T("elx_help"))}</div><div data-elx-formula style="font-size:10.5px;color:#374151;line-height:1.35;margin:0 2px 4px">${esc(T("elx_formula"))}</div>`;
     h+=`<button type="button" data-el-det aria-expanded="${EL_DET}" style="margin-top:8px;border:0;background:none;color:#1D4ED8;font:700 12.5px system-ui;cursor:pointer;padding:4px 0">${EL_DET?"▾":"▸"} ${esc(T("elx_det"))}</button></div>`;
     return h}
   function elStats(){const CL=ELEKTRO.L.map(l=>[l,elCalc(l,EL_OFF[l.id],EL_SIM)]);
@@ -3266,7 +3278,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
   function elBody(){const f1=x=>{const v=(+x).toFixed(1);return LANG==="gb"?v:v.replace(".",",")};
     const col=p=>p>=90?"#DC2626":p>=70?"#F59E0B":"#16A34A",stK=p=>p>=90?"el_over":p>=70?"el_warn":"el_ok";
     const CL=ELEKTRO.L.map(l=>[l,elCalc(l,EL_OFF[l.id],EL_SIM)]);
-    let b=`<div data-el-intro style="font-size:11.5px;color:#374151;line-height:1.4;margin:6px 2px 4px">${esc(T("el_intro"))}</div>`+elScheme()+(EL_DET?`<div data-el-ph-help style="font-size:10.5px;color:#6B7280;line-height:1.35;margin:0 2px 4px">${esc(T("el_ph_help"))}</div>`:""),g="";
+    let b=elScheme()+`<div data-el-intro style="font-size:11.5px;color:#374151;line-height:1.4;margin:6px 2px 4px">${esc(T("el_intro"))}</div>`+(EL_DET?`<div data-el-ph-help style="font-size:10.5px;color:#6B7280;line-height:1.35;margin:0 2px 4px">${esc(T("el_ph_help"))}</div>`:""),g="";
     const bar=(w,c,o)=>`<span style="position:absolute;left:0;top:0;bottom:0;width:${Math.min(100,w)}%;background:${c};opacity:${o};border-radius:6px"></span>`;
     for(const [l,q] of (EL_DET?CL:[])){const grp=l.id.split("-")[0],dead=!q.act,c=dead?"#6B7280":col(q.pp);
       if(grp!==g){g=grp;b+=`<div data-el-grp="${grp}" style="font-weight:800;font-size:12.5px;color:#111827;margin:10px 2px 2px">${esc(T("el_grp",grp))}</div>`}
@@ -3413,8 +3425,9 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
     return h}
   function render(){const sb=panel.querySelector(".tp-b"),st=sb?sb.scrollTop:0,prev=panel.dataset.tpView||"";
     const body=view==="alerts"?alertView():view==="dev"?devView():catView(view);
-    panel.innerHTML=`<div class="tp-h"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#374151" d="M21.67 18.17l-5.3-5.3h-.99l-2.54 2.54v.99l5.3 5.3c.39.39 1.02.39 1.41 0l2.12-2.12c.39-.38.39-1.02 0-1.41zM17.34 10.19l1.41-1.41 2.12 2.12c1.17-1.17 1.17-3.07 0-4.24l-3.54-3.54-1.41 1.41V1.71l-.7-.71-3.54 3.54.71.71h2.83l-1.41 1.41 1.06 1.06-2.89 2.89-4.13-4.13V5.06L4.83 2.04 2 4.87 5.03 7.9h1.41l4.13 4.13-.85.85H7.6l-5.3 5.3c-.39.39-.39 1.02 0 1.41l2.12 2.12c.39.39 1.02.39 1.41 0l5.3-5.3v-2.12l5.15-5.15 1.06 1.05z"/></svg><b>${esc(T("tech"))}</b><button type="button" class="tp-al ${SEV}" data-tech-alerts data-sev="${SEV||"none"}" aria-pressed="${view==="alerts"}" aria-label="${esc(T("tech_alerts"))}${nProb?" – "+nProb:""}">${tri(SEV,20)}${nProb?`<span>${nProb}</span>`:""}</button><button type="button" class="tp-x" data-tech-close aria-label="${esc(T("tech_close"))}">✕</button>${wxHead()}</div><div class="tp-b">${body}</div>`;
-    panel.dataset.tpView=view;if(view===prev&&st)panel.querySelector(".tp-b").scrollTop=st;bindWxSwipe()}
+    panel.classList.toggle("tp-full",view!=="dev");
+    panel.innerHTML=`<div class="tp-h">${view!=="dev"?`<button type="button" class="tp-hback" data-tech-back aria-label="${esc(T("tech_back"))}">‹ ${esc(T("tech_back"))}</button>`:""}<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#374151" d="M21.67 18.17l-5.3-5.3h-.99l-2.54 2.54v.99l5.3 5.3c.39.39 1.02.39 1.41 0l2.12-2.12c.39-.38.39-1.02 0-1.41zM17.34 10.19l1.41-1.41 2.12 2.12c1.17-1.17 1.17-3.07 0-4.24l-3.54-3.54-1.41 1.41V1.71l-.7-.71-3.54 3.54.71.71h2.83l-1.41 1.41 1.06 1.06-2.89 2.89-4.13-4.13V5.06L4.83 2.04 2 4.87 5.03 7.9h1.41l4.13 4.13-.85.85H7.6l-5.3 5.3c-.39.39-.39 1.02 0 1.41l2.12 2.12c.39.39 1.02.39 1.41 0l5.3-5.3v-2.12l5.15-5.15 1.06 1.05z"/></svg><b>${esc(T("tech"))}</b><button type="button" class="tp-al ${SEV}" data-tech-alerts data-sev="${SEV||"none"}" aria-pressed="${view==="alerts"}" aria-label="${esc(T("tech_alerts"))}${nProb?" – "+nProb:""}">${tri(SEV,20)}${nProb?`<span>${nProb}</span>`:""}</button><button type="button" class="tp-x" data-tech-close aria-label="${esc(T("tech_close"))}">✕</button>${wxHead()}</div><div class="tp-b">${body}</div>`;
+    panel.dataset.tpView=view;if(view===prev&&st)panel.querySelector(".tp-b").scrollTop=st;bindWxSwipe();if(view==="el")elFit()}
   const CMD_KEY="techCommands",FINAL=["applied","failed","expired","rejected"];
   const cmdsGet=()=>{try{const q=JSON.parse(localStorage.getItem(CMD_KEY)||"[]");return Array.isArray(q)?q:[]}catch(_){return[]}};
   const cmdsPut=q=>{try{localStorage.setItem(CMD_KEY,JSON.stringify(q.slice(-100)))}catch(_){}};
