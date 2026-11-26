@@ -3764,7 +3764,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
     if(btn&&ok){const o=btn.textContent;btn.textContent="✓ "+T("sms_copied");setTimeout(()=>{btn.textContent=o},1800)}}
   const clsOf=t=>{const m=(t.drafts||[]).find(d=>d&&d.key==="_meta")||{};if(m.gs)return "gs";let c=CLS_ORD[m.cls]!=null?m.cls:t.kind!=="message"?"blue":t.status==="waiting_guest"?"yellow":t.status==="waiting"||t.status==="done"?"green":"red";
     // t246u: a red thread turns yellow once the host has replied after that guest message — never auto-green
-    if(c==="red"&&t.kind==="message"){const role=m.last_by_role||"";const ma=latestAction(t.id),mine=ma&&ma[1];const sent=mine&&/^(pending|sent|done)$/.test(actionState(mine)||"");if(role==="host"||role==="cohost"||sent)c="yellow"}
+    if(c==="red"&&t.kind==="message"){const role=m.last_by_role||"";const ma=latestAction(t.id),mine=ma&&ma[1];const sent=mine&&/^(pending|sent|done)$/.test(actionState(mine)||"");if(sent||(!m.nr&&(role==="host"||role==="cohost")))c="yellow"}
     return c};
   const sh=document.createElement("div");sh.id="msg-sheet";sh.hidden=true;sh.setAttribute("data-msg-sheet","");document.body.appendChild(sh);window.MSG_ZOOM=panelZoom(sh,"msgZoom");
   const dm=d=>d?String(d).slice(5).split("-").reverse().join("."):"";
