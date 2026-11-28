@@ -3287,7 +3287,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
         const ms = q.bs.filter((m) => (m.from !== l.id ? "sim" : m.b[2] || "\u2013") === rz);
         const isMid = midHere && rz === "R8";
         const lab = isMid ? T("elx_panel_14b") : rz === "sim" ? T("elx_moved_h") : rz === "\u2013" ? T("elx_direct") : rz === "R Energy" ? T("elx_energy") : rz;
-        const sub = isMid ? T("elx_mid_to", mid.onward) + (mid.guess ? " · " + T("elx_mid_guess") : "") : rz === "R2" && l.id === "9-J1" ? T("elx_r2k3") : rz === "R Energy" ? T("elx_cab_q") : rz === "R1/R2" ? T("elx_r12") : "";
+        const sub = isMid ? T("elx_mid_to", mid.onward) : rz === "R2" && l.id === "9-J1" ? T("elx_r2k3") : rz === "R Energy" ? T("elx_cab_q") : rz === "R1/R2" ? T("elx_r12") : "";
         const ra = ms.reduce((a, m) => a + m.b[3] * (1 - m.lost), 0), rn = ms.filter((m) => m.b[3] > 0.1).length;
         return { rz, ms, lab, sub, ra, rp: 3 * ra * divf(rn), sk: rz === "sim" ? [] : EL_SOCK[l.id + "|" + rz] || (isMid ? [["EL46", 1]] : []), mid: isMid };
       });
