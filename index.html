@@ -3264,7 +3264,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
       const sa = "ed|s|" + g;
       it.push({ t: "r", x, y: y2, w, h, r: 12, f: tint(sp), k: ed ? "#1D4ED8" : sc, sw: ed ? 4 : 2.5, d: "st" + g, act: sa });
       const t = T("elx_st", g) + "  ✎";
-      tx(x + 10, y2 + 30, fit(w - 80, t, 32), t, "#0A0A0A", { b: 900, act: sa });
+      tx(x + 10, y2 + 30, 32, t, "#0A0A0A", { b: 900, act: sa });
       tx(x + w - 10, y2 + 29, 20, sp + "\xA0%", ed ? "#1D4ED8" : sc, { b: 800, a: "end", act: sa });
       const mid = elMidOf();
       const brIds = CL.map(([l]) => l.id.split("-")[1]);
@@ -3357,7 +3357,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
       const CW = 150, GAP = 10, SG = 24, yS = 6, RH = 36;
       let x = PADX;
       for (const G of groups) {
-        const gw = G.L.length * CW + (G.L.length - 1) * GAP;
+        const gw = Math.max(320, G.L.length * CW + (G.L.length - 1) * GAP);
         const CL = G.L.map((l) => [l, elCalc(l, off[l.id], sim)]);
         const rcd = EL_RCD[G.g];
         const main = mainOf(G.g);
@@ -3427,7 +3427,7 @@ window.ukTodayX=ukTodayX;window.scrollUkTo=scrollUkTo;
       }
       W = x - SG + PADX;
     } else {
-      const SW = 176, CW = 200, xS = PADX, xC0 = xS + SW + 24, xB0 = xC0 + CW + 34, MAXW = 990, RG = 14, GG = 22;
+      const SW = 320, CW = 200, xS = PADX, xC0 = xS + SW + 24, xB0 = xC0 + CW + 34, MAXW = 990, RG = 14, GG = 22;
       let y2 = 6, Wland = xB0 + MAXW + PADX;
       for (const G of groups) {
         const rcd = EL_RCD[G.g];
